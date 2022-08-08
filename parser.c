@@ -2,15 +2,15 @@
 /* Copyright (c) 2022 John Honniball. All rights reserved              */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define EOS   ('\0')
 
-struct Token {
-   int/**/type;
-   int/**/value;
-   char/* */str[256];
-};
+#define MAXNAME  (32)
+#define MAXSYMS  (512)
+
 
 enum eToken {
    TNULL, TSEMI, TCOLON, TCOMMA, TQUEST,
@@ -24,18 +24,57 @@ enum eToken {
    TLE, TGE, TGT, TLT, TEQ, TNE,
    TLSHT, TRSHT, TLSHTAB, TRSHTAB,
    TPOINT, TDOT,
+   TID, TINTLIT, TFLOATLIT, TSTRLIT,
+   TBREAK, TCONTINUE, TDO, TFOR, TWHILE, TRETURN, TIF, TELSE, TGOTO,
+   TCASE, TSWITCH, TDEFAULT, TSIZEOF,
+   TAUTO, TREGISTER, TSTATIC, TEXTERN,
+   TCONST, TVOLATILE, TTYPEDEF,
+   TINT, TFLOAT, TDOUBLE, TCHAR, TSHORT, TLONG, TUNSIGNED, TSIGNED, TVOID,
+   TENUM, TSTRUCT, TUNION,
 };
 
+enum eTokenType {
+   KNULL,
+   KTOKEN,
+   KINVALID,
+   KNAME,
+   KNUMBER,
+   KSTRING,
+   KKEYWORD,
+};
+
+struct Token {
+   int/**/type;
+   int/**/value;
+   enum/***/eToken/****/token;
+   char/* */str[256];
+};
+
+struct Symbol {
+   char name[MAXNAME];
+   enum eToken token;
+   bool isType;
+   bool isKeyword;
+};
+
+int NextSym = 0;
+struct Symbol SymTab[MAXSYMS];
+
+void initialise(void);
 void parse(const char fname[]);
 void parser(const char fname[], FILE *fp);
 int GetToken(FILE *fp, struct Token *tok);
 void PrintToken(const struct Token *tok);
+void installkw(const char keyword[], enum eToken token, bool isType);
+enum eToken lookupKeyword(const char name[]);
 
 
 int main(const int argc, const char *argv[])
 {
    int i;
-
+   
+   initialise();
+   
    for (i = 1; i < argc; i++) {
       if (argv[i][0] == '-') {
       }
@@ -45,6 +84,44 @@ int main(const int argc, const char *argv[])
    }
 
    return (0);
+}
+
+
+void initialise(void)
+{
+   installkw("break",    TBREAK,    false);
+   installkw("case",     TCASE,     false);
+   installkw("continue", TCONTINUE, false);
+   installkw("do",       TDO,       false);
+   installkw("default",  TDEFAULT,  false);
+   installkw("else",     TELSE,     false);
+   installkw("for",      TFOR,      false);
+   installkw("goto",     TGOTO,     false);
+   installkw("if",       TIF,       false);
+   installkw("typedef",  TTYPEDEF,  false);
+   installkw("return",   TRETURN,   false);
+   installkw("sizeof",   TSIZEOF,   false);
+   installkw("switch",   TSWITCH,   false);
+   installkw("while",    TWHILE,    false);
+   
+   installkw("int",      TINT,      true);
+   installkw("float",    TFLOAT,    true);
+   installkw("double",   TDOUBLE,   true);
+   installkw("char",     TCHAR,     true);
+   installkw("void",     TVOID,     true);
+   installkw("short",    TSHORT,    true);
+   installkw("long",     TLONG,     true);
+   installkw("auto",     TAUTO,     true);
+   installkw("static",   TSTATIC,   true);
+   installkw("const",    TCONST,    true);
+   installkw("volatile", TVOLATILE, true);
+   installkw("signed",   TSIGNED,   true);
+   installkw("unsigned", TUNSIGNED, true);
+   installkw("register", TREGISTER, true);
+   installkw("extern",   TEXTERN,   true);
+   installkw("struct",   TSTRUCT,   true);
+   installkw("union",    TUNION,    true);
+   installkw("enum",     TENUM,     true);
 }
 
 
@@ -96,7 +173,7 @@ int GetToken(FILE *fp, struct Token *tok)
          case '.':
          case '?':
          case '~':
-            tok->type = 1;
+            tok->type = KTOKEN;
             tok->str[0] = ch;
             tok->str[1] = EOS;
             return (tok->type);
@@ -105,7 +182,7 @@ int GetToken(FILE *fp, struct Token *tok)
          case '`':
          case '@':
          case '\\':
-            tok->type = 2;
+            tok->type = KINVALID;
             tok->str[0] = ch;
             tok->str[1] = EOS;
             return (tok->type);
@@ -199,10 +276,19 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i++] = ch;
          }
          else {
+            enum eToken token;
+            
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 3;
+            if ((token = lookupKeyword(tok->str)) == TNULL) {
+               tok->token = TID;
+               tok->type = KNAME;
+            }
+            else {
+               tok->token = token;
+               tok->type = KKEYWORD;
+            }
             return (tok->type);
          }
          break;
@@ -211,14 +297,14 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          break;
@@ -227,28 +313,28 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else if (ch == '>') {
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else if (ch == '<') {
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          break;
@@ -260,8 +346,9 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
+            tok->token = TINTLIT;
             tok->value = atoi(tok->str);
-            tok->type = 4;
+            tok->type = KNUMBER;
             return (tok->type);
          }
          break;
@@ -270,14 +357,14 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          break;
@@ -286,14 +373,14 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          break;
@@ -302,7 +389,7 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else if (ch == '+') {
@@ -316,7 +403,7 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          break;
@@ -325,28 +412,28 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else if (ch == '-') {
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else if (ch == '>') {
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          break;
@@ -355,21 +442,21 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else if (ch == '&') {
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
       case 10:
@@ -377,7 +464,7 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else if (ch == '/') {
@@ -390,7 +477,7 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          break;
@@ -406,7 +493,8 @@ int GetToken(FILE *fp, struct Token *tok)
          else if (ch == '"') {
             state = 0;
             tok->str[i] = EOS;
-            tok->type = 5;
+            tok->token = TSTRLIT;
+            tok->type = KSTRING;
             return (tok->type);
          }
          else {
@@ -444,14 +532,14 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          break;
@@ -460,7 +548,7 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else if (ch == '>') {
@@ -472,7 +560,7 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          break;
@@ -481,14 +569,14 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          break;
@@ -497,7 +585,7 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else if (ch == '<') {
@@ -509,7 +597,7 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          break;
@@ -518,14 +606,14 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = 1;
+            tok->type = KTOKEN;
             return (tok->type);
          }
          break;
@@ -593,7 +681,8 @@ int GetToken(FILE *fp, struct Token *tok)
          if (ch == '\'') {
             state = 0;
             tok->value = tok->str[0];
-            tok->type = 4;
+            tok->token = TINTLIT;
+            tok->type = KNUMBER;
             return (tok->type);
          }
          else {
@@ -603,36 +692,68 @@ int GetToken(FILE *fp, struct Token *tok)
       }
    }
 
-   tok->type = 0;
+   tok->type = KNULL;
    tok->str[0] = ch;
    tok->str[1] = EOS;
 
    return (tok->type);
 }
 
+
+/* PrintToken --- print a token for debugging or tracing */
+
 void PrintToken(const struct Token *tok)
 {
    switch (tok->type)
    {
-   case 0:
+   case KNULL:
       putc(tok->str[0], stdout);
       break;
-   case 1:
+   case KTOKEN:
       printf("TOKEN: '%s'\n", tok->str);
       break;
-   case 2:
+   case KINVALID:
       printf("INVALID: '%c'\n", tok->str[0]);
       break;
-   case 3:
-      printf("NAME: '%s'\n", tok->str);
+   case KNAME:
+      printf("NAME: '%s' %d\n", tok->str, tok->token);
       break;
-   case 4:
-      printf("NUMBER: '%s' %d\n", tok->str, tok->value);
+   case KNUMBER:
+      printf("NUMBER: '%s' %d %d\n", tok->str, tok->token, tok->value);
       break;
-   case 5:
-      printf("STRING: '%s'\n", tok->str);
+   case KSTRING:
+      printf("STRING: '%s' %d\n", tok->str, tok->token);
+      break;
+   case KKEYWORD:
+      printf("KEYWORD: '%s' %d\n", tok->str, tok->token);
       break;
    }
 }
 
+
+/* installkw --- install a C keyword in the symbol table */
+
+void installkw(const char keyword[], enum eToken token, bool isType)
+{
+   struct Symbol *sym = &SymTab[NextSym++];
+   
+   strcpy(sym->name, keyword);
+   sym->token     = token;
+   sym->isType    = isType;
+   sym->isKeyword = true;
+}
+
+
+/* lookupKeyword --- look up a name in the symbol table to see if it's a keyword */
+
+enum eToken lookupKeyword(const char name[])
+{
+   int i;
+   
+   for (i = 0; (i < NextSym) && SymTab[i].isKeyword; i++)
+     if (strcmp(name, SymTab[i].name) == 0)
+        return (SymTab[i].token);
+        
+   return (TNULL);
+}
 
