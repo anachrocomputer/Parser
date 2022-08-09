@@ -67,6 +67,7 @@ void parse(const char fname[]);
 void parser(const char fname[], FILE *fp);
 int GetToken(FILE *fp, struct Token *tok);
 void PrintToken(const struct Token *tok);
+char *tokenAsStr(const struct Token *tok);
 void installkw(const char keyword[], enum eToken token, bool isType);
 enum eToken lookupKeyword(const char name[]);
 
@@ -798,27 +799,289 @@ void PrintToken(const struct Token *tok)
       putc(tok->str[0], stdout);
       break;
    case KTOKEN:
-      printf("TOKEN: '%s' %d\n", tok->str, tok->token);
+      printf("TOKEN: '%s' %s\n", tok->str, tokenAsStr(tok));
       break;
    case KINVALID:
       printf("INVALID: '%c'\n", tok->str[0]);
       break;
    case KNAME:
-      printf("NAME: '%s' %d\n", tok->str, tok->token);
+      printf("NAME: '%s' %s\n", tok->str, tokenAsStr(tok));
       break;
    case KNUMBER:
-      printf("NUMBER: '%s' %d %d\n", tok->str, tok->token, tok->iValue);
+      printf("NUMBER: '%s' %s %d\n", tok->str, tokenAsStr(tok), tok->iValue);
       break;
    case KSTRING:
-      printf("STRING: '%s' %d\n", tok->str, tok->token);
+      printf("STRING: '%s' %s\n", tok->str, tokenAsStr(tok));
       break;
    case KKEYWORD:
-      printf("KEYWORD: '%s' %d\n", tok->str, tok->token);
+      printf("KEYWORD: '%s' %s\n", tok->str, tokenAsStr(tok)); 
       break;
    case KOP:
-      printf("OPERATOR: '%s' %d\n", tok->str, tok->token);
+      printf("OPERATOR: '%s' %s\n", tok->str, tokenAsStr(tok));
       break;
    }
+}
+
+
+/* tokenAsStr --- generate a string representation of any token */
+
+char *tokenAsStr(const struct Token *tok)
+{
+   char *str;
+   
+   switch (tok->token) {
+   case TNULL:
+      str = "TNULL";
+      break;
+   case TSEMI:
+      str = "TSEMI";
+      break;
+   case TCOLON:
+      str = "TCOLON";
+      break;
+   case TCOMMA:
+      str = "TCOMMA";
+      break;
+   case TQUEST:
+      str = "TQUEST";
+      break;
+   case TOPAREN:
+      str = "TOPAREN";
+      break;
+   case TCPAREN:
+      str = "TCPAREN";
+      break;
+   case TOSQBRK:
+      str = "TOSQBRK";
+      break;
+   case TCSQBRK:
+      str = "TCSQBRK";
+      break;
+   case TOBRACE:
+      str = "TOBRACE";
+      break;
+   case TCBRACE:
+      str = "TCBRACE";
+      break;
+   case TPLUS:
+      str = "TPLUS";
+      break;
+   case TMINUS:
+      str = "TMINUS";
+      break;
+   case TSTAR:
+      str = "TSTAR";
+      break;
+   case TDIV:
+      str = "TDIV";
+      break;
+   case TMOD:
+      str = "TMOD";
+      break;
+   case TPLUSAB:
+      str = "TPLUSAB";
+      break;
+   case TMINUSAB:
+      str = "TMINUSAB";
+      break;
+   case TTIMESAB:
+      str = "TTIMESAB";
+      break;
+   case TDIVAB:
+      str = "TDIVAB";
+      break;
+   case TMODAB:
+      str = "TMODAB";
+      break;
+   case TASSIGN:
+      str = "TASSIGN";
+      break;
+   case TINC:
+      str = "TINC";
+      break;
+   case TDEC:
+      str = "TDEC";
+      break;
+   case TOR:
+      str = "TOR";
+      break;
+   case TAND:
+      str = "TAND";
+      break;
+   case TEXOR:
+      str = "TEXOR";
+      break;
+   case TNOT:
+      str = "TNOT";
+      break;
+   case TORAB:
+      str = "TORAB";
+      break;
+   case TANDAB:
+      str = "TANDAB";
+      break;
+   case TEXORAB:
+      str = "TEXORAB";
+      break;
+   case TLOGAND:
+      str = "TLOGAND";
+      break;
+   case TLOGOR:
+      str = "TLOGOR";
+      break;
+   case TLOGNOT:
+      str = "TLOGNOT";
+      break;
+   case TLE:
+      str = "TLE";
+      break;
+   case TGE:
+      str = "TGE";
+      break;
+   case TGT:
+      str = "TGT";
+      break;
+   case TLT:
+      str = "TLT";
+      break;
+   case TEQ:
+      str = "TEQ";
+      break;
+   case TNE:
+      str = "TNE";
+      break;
+   case TLSHT:
+      str = "TLSHT";
+      break;
+   case TRSHT:
+      str = "TRSHT";
+      break;
+   case TLSHTAB:
+      str = "TLSHTAB";
+      break;
+   case TRSHTAB:
+      str = "TRSHTAB";
+      break;
+   case TPOINT:
+      str = "TPOINT";
+      break;
+   case TDOT:
+      str = "TDOT";
+      break;
+   case TID:
+      str = "TID";
+      break;
+   case TINTLIT:
+      str = "TINTLIT";
+      break;
+   case TFLOATLIT:
+      str = "TFLOATLIT";
+      break;
+   case TSTRLIT:
+      str = "TSTRLIT";
+      break;
+   case TBREAK:
+      str = "TBREAK";
+      break;
+   case TCONTINUE:
+      str = "TCONTINUE";
+      break;
+   case TDO:
+      str = "TDO";
+      break;
+   case TFOR:
+      str = "TFOR";
+      break;
+   case TWHILE:
+      str = "TWHILE";
+      break;
+   case TRETURN:
+      str = "TRETURN";
+      break;
+   case TIF:
+      str = "TIF";
+      break;
+   case TELSE:
+      str = "TELSE";
+      break;
+   case TGOTO:
+      str = "TGOTO";
+      break;
+   case TCASE:
+      str = "TCASE";
+      break;
+   case TSWITCH:
+      str = "TSWITCH";
+      break;
+   case TDEFAULT:
+      str = "TDEFAULT";
+      break;
+   case TSIZEOF:
+      str = "TSIZEOF";
+      break;
+   case TAUTO:
+      str = "TAUTO";
+      break;
+   case TREGISTER:
+      str = "TREGISTER";
+      break;
+   case TSTATIC:
+      str = "TSTATIC";
+      break;
+   case TEXTERN:
+      str = "TEXTERN";
+      break;
+   case TCONST:
+      str = "TCONST";
+      break;
+   case TVOLATILE:
+      str = "TVOLATILE";
+      break;
+   case TTYPEDEF:
+      str = "TTYPEDEF";
+      break;
+   case TINT:
+      str = "TINT";
+      break;
+   case TFLOAT:
+      str = "TFLOAT";
+      break;
+   case TDOUBLE:
+      str = "TDOUBLE";
+      break;
+   case TCHAR:
+      str = "TCHAR";
+      break;
+   case TSHORT:
+      str = "TSHORT";
+      break;
+   case TLONG:
+      str = "TLONG";
+      break;
+   case TUNSIGNED:
+      str = "TUNSIGNED";
+      break;
+   case TSIGNED:
+      str = "TSIGNED";
+      break;
+   case TVOID:
+      str = "TVOID";
+      break;
+   case TENUM:
+      str = "TENUM";
+      break;
+   case TSTRUCT:
+      str = "TSTRUCT";
+      break;
+   case TUNION:
+      str = "TUNION";
+      break;
+   default:
+      str = "ERROR";
+      break;
+   }
+   
+   return (str);
 }
 
 
