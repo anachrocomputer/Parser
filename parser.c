@@ -391,22 +391,6 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->type = KOP;
             return (tok->type);
          }
-         else if (ch == '>') {
-            state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
-            tok->token = TGE;
-            tok->type = KOP;
-            return (tok->type);
-         }
-         else if (ch == '<') {
-            state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
-            tok->token = TLE;
-            tok->type = KOP;
-            return (tok->type);
-         }
          else {
             state = 0;
             ungetc(ch, fp);
