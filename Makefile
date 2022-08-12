@@ -11,11 +11,14 @@ ASFLAGS=--6309
 
 all: parser ex1.hex ex1.srec
 
-parser.o: parser.c
+parser.o: parser.c codegen.h
 	$(CC) $(CFLAGS) -o parser.o parser.c
 
-parser: parser.o
-	$(LD) $(LDFLAGS) -o parser parser.o
+codegen.o: codegen.c codegen.h
+	$(CC) $(CFLAGS) -o codegen.o codegen.c
+
+parser: parser.o codegen.o
+	$(LD) $(LDFLAGS) -o parser parser.o codegen.o
 
 ex1.hex: ex1.asm
 	$(AS) $(ASFLAGS) -H -o ex1.hex -l ex1.lst ex1.asm

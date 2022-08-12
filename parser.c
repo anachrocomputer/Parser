@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "codegen.h"
+
 #define EOS   ('\0')
 
 #define MAXNAME  (32)
@@ -137,17 +139,38 @@ void parse(const char fname[])
       return;
    }
    
+   OpenAssemblerFile(fname);
+   
    parser(fname, fp);
 
+   CloseAssemblerFile();
    fclose (fp);
 }
 
 void parser(const char fname[], FILE *fp)
 {
    struct Token tok;
+   const int l1 = AllocLabel('L');
+   const int l2 = AllocLabel('L');
+   const int s1 = AllocLabel('L');
+   const int s2 = AllocLabel('I');
+   const int s3 = AllocLabel('C');
 
+   EmitLabel(l1);
+   
    while (GetToken(fp, &tok) != EOF)
       PrintToken(&tok);
+      
+   
+   Emit("nop", "", "Do nothing");
+   EmitJump(l2);
+   Emit("nop", "", "Do nothing");
+   EmitLabel(l2);
+   EmitJump(l1);
+   Emit("rts", "", "Return to caller");
+   EmitStaticLong(s1, 65536L, "bytes");
+   EmitStaticInt(s2, 42, "state");
+   EmitStaticChar(s3, 'A', "letter");
 }
 
 
