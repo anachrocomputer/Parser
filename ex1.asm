@@ -1,5 +1,7 @@
-
-main
+ setdp $0
+ org $0400
+appEntry
+_main
  pshs u
  tfr s,u
  leas -6,s
@@ -14,9 +16,51 @@ main
  addd -4,u
  std -6,u
  
+ leax -2,u  ; &a
+ leax -4,u  ; &b
+ leax -6,u  ; &c
+ leax -15,u
+ leax -16,u
+ leax -17,u
+ leax -18,u
+ 
+ leax l0001,PCR ; &bytes
+ leay i0002,PCR ; &state
+ leau c0003,PCR ; &letter
+ 
+ ldx  #l0001 ; &bytes
+ ldy  #i0002 ; &state
+ ldu  #c0003 ; &letter
+ 
+ jmp  r0001     ; return
+ jmp  r0001,PCR ; return
+ bra  r0001     ; return
+ lbra r0001     ; return
+ 
+ ldq  l0001 ; bytes
+ ldq  l0001,PCR ; bytes
+ 
+ ldd  i0002 ; state
+ ldd  i0002,PCR ; state
+ 
+ ldb  c0003 ; letter
+ sex
+ ldb  c0003,PCR ; letter
+ sex
+ 
+ ldd  #42
+ std  i0002 ; state
+ 
+ ldd  #66
+ stb  c0003 ; letter
+ 
  ldd #42    ; return 42;
  
+r0001 
  tfr u,s
  puls u
  rts
- 
+l0001 fqb  65536 ; static long int bytes = 256L * 256L;
+i0002 fdb  17  ; static int state = 17;
+c0003 fcb  65  ; static char letter = 'A';
+ end appEntry
