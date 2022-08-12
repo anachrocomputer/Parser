@@ -163,10 +163,10 @@ void parser(const char fname[], FILE *fp)
       
    
    Emit("nop", "", "Do nothing");
-   EmitJump(l2);
+   EmitJump(l2, "Jump forward to l2");
    Emit("nop", "", "Do nothing");
    EmitLabel(l2);
-   EmitJump(l1);
+   EmitJump(l1, "Jump back to l1");
    Emit("rts", "", "Return to caller");
    EmitStaticLong(s1, 65536L, "bytes");
    EmitStaticInt(s2, 42, "state");

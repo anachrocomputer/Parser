@@ -8,4 +8,4 @@ void EmitLabel(const int label);
 int EmitStaticLong(const int label, const long int init, const char comment[]);
 int EmitStaticInt(const int label, const int init, const char comment[]);
 int EmitStaticChar(const int label, const int init, const char comment[]);
-int EmitJump(const int label);
+int EmitJump(const int label, const char comment[]);

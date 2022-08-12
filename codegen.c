@@ -66,12 +66,12 @@ int EmitStaticChar(const int label, const int init, const char comment[])
    fprintf(Asm, "l%04d   fcb  %d     ; %s\n", label, init, comment);
 }
 
-int EmitJump(const int label)
+int EmitJump(const int label, const char comment[])
 {
    char target[8];
    
    snprintf(target, sizeof (target), "l%04d", label);
    
-   Emit("jmp", target, "");
+   Emit("jmp", target, comment);
 }
 
