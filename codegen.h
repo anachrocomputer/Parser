@@ -1,4 +1,5 @@
 /* codegen --- code generation routines                     2022-08-12 */
+/* Copyright (c) 2022 John Honniball. All rights reserved              */
 
 int OpenAssemblerFile(const char fname[]);
 int CloseAssemblerFile(void);
