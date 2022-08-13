@@ -166,6 +166,11 @@ void parser(const char fname[], FILE *fp)
    EmitJump(l2, "Jump forward to l2");
    Emit("nop", "", "Do nothing");
    EmitLabel(l2);
+   LoadIntConstant(42, 'D', "Load constant 42");
+   StoreStaticInt(s2, 'D', "Store 'state'");
+   LoadStaticChar(s3, 'D', true, "Load 'letter'");
+   LoadStaticInt(s2, 'X', "Load 'state'");
+   LoadStaticLong(s1, "Load 'bytes'");
    EmitJump(l1, "Jump back to l1");
    Emit("rts", "", "Return to caller");
    EmitStaticLong(s1, 65536L, "bytes");
