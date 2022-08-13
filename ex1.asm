@@ -24,10 +24,25 @@ _main
  leax -17,u
  leax -18,u
  
+ ldd  -16,u     ; Load auto int
+ ldd  -17,u     ; Load auto int
+
+ ldq  -16,u     ; Load auto long
+ ldq  -20,u     ; Load auto long
+ 
  leax l0001,PCR ; &bytes
  leay i0002,PCR ; &state
  leau c0003,PCR ; &letter
  
+ ldd  ,x        ; Load int via pointer
+ ldq  ,x        ; Load long int via pointer
+ 
+ std  -16,u     ; Store auto int
+ std  -18,u     ; Store auto int
+ 
+ stq  -16,u     ; Store auto long
+ stq  -20,u     ; Store auto long
+
  ldx  #l0001 ; &bytes
  ldy  #i0002 ; &state
  ldu  #c0003 ; &letter
@@ -40,6 +55,10 @@ _main
  ldq  l0001 ; bytes
  ldq  l0001,PCR ; bytes
  
+ ldq  #65536    ; 32-bit constant
+ stq  l0001     ; Store 'bytes'
+ stq  l0001,PCR ; Store 'bytes'
+
  ldd  i0002 ; state
  ldd  i0002,PCR ; state
  
