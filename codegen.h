@@ -1,6 +1,7 @@
 /* codegen --- code generation routines                     2022-08-12 */
 /* Copyright (c) 2022 John Honniball. All rights reserved              */
 
+void CodeGenInit(void);
 int OpenAssemblerFile(const char fname[]);
 int CloseAssemblerFile(void);
 int Emit(const char inst[], const char oper[], const char comment[]);

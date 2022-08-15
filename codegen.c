@@ -10,6 +10,13 @@ static int NextLabel = 0;
 static FILE *Asm = NULL;
 
 
+/* CodeGenInit --- initialise this module */
+
+void CodeGenInit(void)
+{
+}
+
+
 /* OpenAssemblerFile --- open the output file and write a header */
 
 int OpenAssemblerFile(const char fname[])
