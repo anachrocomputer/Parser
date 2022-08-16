@@ -21,8 +21,8 @@ struct Symbol {
    bool isKeyword;
 };
 
-int NextSym = 0;
-struct Symbol SymTab[MAXSYMS];
+static int NextSym = 0;
+static struct Symbol SymTab[MAXSYMS];
 
 /* LexicalInit --- initialise this module */
 
