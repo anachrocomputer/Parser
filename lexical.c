@@ -247,7 +247,12 @@ int GetToken(FILE *fp, struct Token *tok)
             i = 1;
             state = 3;
             break;
-         case '0': case '1': case '2': case '3': case '4':
+         case '0':
+            tok->str[0] = ch;
+            i = 1;
+            state = 24;
+            break;
+         case '1': case '2': case '3': case '4':
          case '5': case '6': case '7': case '8': case '9':
             tok->str[0] = ch;
             i = 1;
@@ -376,8 +381,14 @@ int GetToken(FILE *fp, struct Token *tok)
             return (tok->type);
          }
          break;
-      case 4:        // Seen '0' to '9'
+      case 4:        // Seen '1' to '9' (decimal number)
          if ((ch >= '0') && (ch <= '9')) {
+            tok->str[i++] = ch;
+         }
+         else if ((ch == 'L') || (ch == 'l')) {
+            tok->str[i++] = ch;
+         }
+         else if ((ch == 'U') || (ch == 'u')) {
             tok->str[i++] = ch;
          }
          else {
@@ -751,6 +762,73 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 23;
+         }
+         break;
+      case 24:       // seen '0' (octal or hex number)
+         if ((ch == 'x') || (ch == 'X')) {
+            tok->str[i++] = ch;
+            state = 26;
+         }
+         else if ((ch >= '0') && (ch <= '7')) {
+            tok->str[i++] = ch;
+            state = 25;
+         }
+         else if ((ch == 'L') || (ch == 'l')) {
+            tok->str[i++] = ch;
+         }
+         else if ((ch == 'U') || (ch == 'u')) {
+            tok->str[i++] = ch;
+         }
+         else {
+            state = 0;
+            ungetc(ch, fp);
+            tok->str[i] = EOS;
+            tok->token = TINTLIT;
+            tok->iValue = strtoul(tok->str, NULL, 8);
+            tok->type = KNUMBER;
+            return (tok->type);
+         }
+         break;
+      case 25:       // seen '0' followed by '0' to '7' (octal number)
+         if ((ch >= '0') && (ch <= '7')) {
+            tok->str[i++] = ch;
+         }
+         else if ((ch == 'L') || (ch == 'l')) {
+            tok->str[i++] = ch;
+         }
+         else if ((ch == 'U') || (ch == 'u')) {
+            tok->str[i++] = ch;
+         }
+         else {
+            state = 0;
+            ungetc(ch, fp);
+            tok->str[i] = EOS;
+            tok->token = TINTLIT;
+            tok->iValue = strtoul(tok->str, NULL, 8);
+            tok->type = KNUMBER;
+            return (tok->type);
+         }
+         break;
+      case 26:       // seen '0x' (hex number)
+         if (((ch >= '0') && (ch <= '9')) ||
+             ((ch >= 'a') && (ch <= 'f')) ||
+             ((ch >= 'A') && (ch <= 'F'))) {
+            tok->str[i++] = ch;
+         }
+         else if ((ch == 'L') || (ch == 'l')) {
+            tok->str[i++] = ch;
+         }
+         else if ((ch == 'U') || (ch == 'u')) {
+            tok->str[i++] = ch;
+         }
+         else {
+            state = 0;
+            ungetc(ch, fp);
+            tok->str[i] = EOS;
+            tok->token = TINTLIT;
+            tok->iValue = strtoul(&tok->str[2], NULL, 16);
+            tok->type = KNUMBER;
+            return (tok->type);
          }
          break;
       }
