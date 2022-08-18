@@ -867,6 +867,15 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->type = KNUMBER;
             return (tok->type);
          }
+         else if ((ch == 'l') || (ch == 'L')) {
+            tok->str[i++] = ch;
+            state = 0;
+            tok->str[i] = EOS;
+            tok->token = TFLOATLIT;
+            tok->fValue = strtod(tok->str, NULL);
+            tok->type = KNUMBER;
+            return (tok->type);
+         }
          else {
             state = 0;
             ungetc(ch, fp);
@@ -885,6 +894,15 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i++] = ch;
          }
          else if ((ch == 'f') || (ch == 'F')) {
+            tok->str[i++] = ch;
+            state = 0;
+            tok->str[i] = EOS;
+            tok->token = TFLOATLIT;
+            tok->fValue = strtod(tok->str, NULL);
+            tok->type = KNUMBER;
+            return (tok->type);
+         }
+         else if ((ch == 'l') || (ch == 'L')) {
             tok->str[i++] = ch;
             state = 0;
             tok->str[i] = EOS;
