@@ -111,7 +111,10 @@ void PrintToken(const struct Token *tok)
       printf("NAME: '%s' %s\n", tok->str, tokenAsStr(tok));
       break;
    case KNUMBER:
-      printf("NUMBER: '%s' %s %d\n", tok->str, tokenAsStr(tok), tok->iValue);
+      if (tok->token == TINTLIT)
+         printf("NUMBER: '%s' %s %d\n", tok->str, tokenAsStr(tok), tok->iValue);
+      else if (tok->token == TFLOATLIT)
+         printf("NUMBER: '%s' %s %g\n", tok->str, tokenAsStr(tok), tok->fValue);
       break;
    case KSTRING:
       printf("STRING: '%s' %s\n", tok->str, tokenAsStr(tok));
@@ -384,6 +387,14 @@ int GetToken(FILE *fp, struct Token *tok)
       case 4:        // Seen '1' to '9' (decimal number)
          if ((ch >= '0') && (ch <= '9')) {
             tok->str[i++] = ch;
+         }
+         else if (ch == '.') {
+            tok->str[i++] = ch;
+            state = 27;
+         }
+         else if ((ch == 'e') || (ch == 'E')) {
+            tok->str[i++] = ch;
+            state = 28;
          }
          else if ((ch == 'L') || (ch == 'l')) {
             tok->str[i++] = ch;
@@ -764,7 +775,7 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 23;
          }
          break;
-      case 24:       // seen '0' (octal or hex number)
+      case 24:       // seen '0' (octal or hex number, or float number)
          if ((ch == 'x') || (ch == 'X')) {
             tok->str[i++] = ch;
             state = 26;
@@ -772,6 +783,10 @@ int GetToken(FILE *fp, struct Token *tok)
          else if ((ch >= '0') && (ch <= '7')) {
             tok->str[i++] = ch;
             state = 25;
+         }
+         else if (ch == '.') {
+            tok->str[i++] = ch;
+            state = 27;
          }
          else if ((ch == 'L') || (ch == 'l')) {
             tok->str[i++] = ch;
@@ -792,6 +807,10 @@ int GetToken(FILE *fp, struct Token *tok)
       case 25:       // seen '0' followed by '0' to '7' (octal number)
          if ((ch >= '0') && (ch <= '7')) {
             tok->str[i++] = ch;
+         }
+         else if (ch == '.') {
+            tok->str[i++] = ch;
+            state = 27;
          }
          else if ((ch == 'L') || (ch == 'l')) {
             tok->str[i++] = ch;
@@ -827,6 +846,59 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i] = EOS;
             tok->token = TINTLIT;
             tok->iValue = strtoul(&tok->str[2], NULL, 16);
+            tok->type = KNUMBER;
+            return (tok->type);
+         }
+         break;
+      case 27:       // seen '.' after decimal digits
+         if ((ch >= '0') && (ch <= '9')) {
+            tok->str[i++] = ch;
+         }
+         else if ((ch == 'e') || (ch == 'E')) {
+            tok->str[i++] = ch;
+            state = 28;
+         }
+         else if ((ch == 'f') || (ch == 'F')) {
+            tok->str[i++] = ch;
+            state = 0;
+            tok->str[i] = EOS;
+            tok->token = TFLOATLIT;
+            tok->fValue = strtod(tok->str, NULL);
+            tok->type = KNUMBER;
+            return (tok->type);
+         }
+         else {
+            state = 0;
+            ungetc(ch, fp);
+            tok->str[i] = EOS;
+            tok->token = TFLOATLIT;
+            tok->fValue = strtod(tok->str, NULL);
+            tok->type = KNUMBER;
+            return (tok->type);
+         }
+         break;
+      case 28:       // seen 'e' or 'E' after decimal digits
+         if ((ch >= '0') && (ch <= '9')) {
+            tok->str[i++] = ch;
+         }
+         else if ((ch == '+') || (ch == '-')) {
+            tok->str[i++] = ch;
+         }
+         else if ((ch == 'f') || (ch == 'F')) {
+            tok->str[i++] = ch;
+            state = 0;
+            tok->str[i] = EOS;
+            tok->token = TFLOATLIT;
+            tok->fValue = strtod(tok->str, NULL);
+            tok->type = KNUMBER;
+            return (tok->type);
+         }
+         else {
+            state = 0;
+            ungetc(ch, fp);
+            tok->str[i] = EOS;
+            tok->token = TFLOATLIT;
+            tok->fValue = strtod(tok->str, NULL);
             tok->type = KNUMBER;
             return (tok->type);
          }
