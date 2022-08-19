@@ -96,34 +96,99 @@ enum eToken lookupKeyword(const char name[])
 
 void PrintToken(const struct Token *tok)
 {
-   switch (tok->type)
-   {
-   case KNULL:
-      putc(tok->str[0], stdout);
+   switch (tok->token) {
+   case TNULL:
+      printf("NULL:     '%c'\n", tok->str[0]);
       break;
-   case KTOKEN:
-      printf("TOKEN: '%s' %s\n", tok->str, tokenAsStr(tok));
+   case TINVAL:
+      printf("INVALID:  '%c'\n", tok->str[0]);
       break;
-   case KINVALID:
-      printf("INVALID: '%c'\n", tok->str[0]);
+   case TID:
+      printf("NAME:     '%s' %s\n", tok->str, tokenAsStr(tok));
       break;
-   case KNAME:
-      printf("NAME: '%s' %s\n", tok->str, tokenAsStr(tok));
+   case TINTLIT:
+      printf("NUMBER:   '%s' %s %d\n", tok->str, tokenAsStr(tok), tok->iValue);
       break;
-   case KNUMBER:
-      if (tok->token == TINTLIT)
-         printf("NUMBER: '%s' %s %d\n", tok->str, tokenAsStr(tok), tok->iValue);
-      else if (tok->token == TFLOATLIT)
-         printf("NUMBER: '%s' %s %g\n", tok->str, tokenAsStr(tok), tok->fValue);
+   case TFLOATLIT:
+      printf("NUMBER:   '%s' %s %g\n", tok->str, tokenAsStr(tok), tok->fValue);
       break;
-   case KSTRING:
-      printf("STRING: '%s' %s\n", tok->str, tokenAsStr(tok));
+   case TSTRLIT:
+      printf("STRING:   '%s' %s\n", tok->str, tokenAsStr(tok));
       break;
-   case KKEYWORD:
-      printf("KEYWORD: '%s' %s\n", tok->str, tokenAsStr(tok)); 
+   case TBREAK:
+   case TCONTINUE:
+   case TDO:
+   case TFOR:
+   case TWHILE:
+   case TRETURN:
+   case TIF:
+   case TELSE:
+   case TGOTO:
+   case TCASE:
+   case TSWITCH:
+   case TDEFAULT:
+   case TSIZEOF:
+   case TAUTO:
+   case TREGISTER:
+   case TSTATIC:
+   case TEXTERN:
+   case TCONST:
+   case TVOLATILE:
+   case TTYPEDEF:
+   case TINT:
+   case TFLOAT:
+   case TDOUBLE:
+   case TCHAR:
+   case TSHORT:
+   case TLONG:
+   case TUNSIGNED:
+   case TSIGNED:
+   case TVOID:
+   case TENUM:
+   case TSTRUCT:
+   case TUNION:
+      printf("KEYWORD:  '%s' %s\n", tok->str, tokenAsStr(tok)); 
       break;
-   case KOP:
+   case TPLUS:
+   case TMINUS:
+   case TSTAR:
+   case TDIV:
+   case TMOD:
+   case TPLUSAB:
+   case TMINUSAB:
+   case TTIMESAB:
+   case TDIVAB:
+   case TMODAB:
+   case TASSIGN:
+   case TINC:
+   case TDEC:
+   case TOR:
+   case TAND:
+   case TEXOR:
+   case TNOT:
+   case TORAB:
+   case TANDAB:
+   case TEXORAB:
+   case TLOGAND:
+   case TLOGOR:
+   case TLOGNOT:
+   case TLE:
+   case TGE:
+   case TGT:
+   case TLT:
+   case TEQ:
+   case TNE:
+   case TLSHT:
+   case TRSHT:
+   case TLSHTAB:
+   case TRSHTAB:
+   case TPOINT:
+   case TDOT:
+   case TQUEST:
       printf("OPERATOR: '%s' %s\n", tok->str, tokenAsStr(tok));
+      break;
+   default:
+      printf("TOKEN:    '%s' %s\n", tok->str, tokenAsStr(tok));
       break;
    }
 }
@@ -225,6 +290,7 @@ int GetToken(FILE *fp, struct Token *tok)
          case '`':
          case '@':
          case '\\':
+            tok->token = TINVAL;
             tok->type = KINVALID;
             tok->str[0] = ch;
             tok->str[1] = EOS;
