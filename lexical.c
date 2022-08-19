@@ -203,7 +203,6 @@ int GetToken(FILE *fp, struct Token *tok)
    tok->token = TNULL;
    tok->iValue = 0;
    tok->fValue = 0.0;
-   tok->type = KINVALID;
    tok->str[0] = EOS;
    
    while (1) {
@@ -215,86 +214,73 @@ int GetToken(FILE *fp, struct Token *tok)
          switch (ch) {
          case ':':
             tok->token = TCOLON;
-            tok->type = KTOKEN;
             tok->str[0] = ch;
             tok->str[1] = EOS;
-            return (tok->type);
+            return (tok->token);
          case ';':
             tok->token = TSEMI;
-            tok->type = KTOKEN;
             tok->str[0] = ch;
             tok->str[1] = EOS;
-            return (tok->type);
+            return (tok->token);
          case ',':
             tok->token = TCOMMA;
-            tok->type = KTOKEN;
             tok->str[0] = ch;
             tok->str[1] = EOS;
-            return (tok->type);
+            return (tok->token);
          case '(':
             tok->token = TOPAREN;
-            tok->type = KTOKEN;
             tok->str[0] = ch;
             tok->str[1] = EOS;
-            return (tok->type);
+            return (tok->token);
          case ')':
             tok->token = TCPAREN;
-            tok->type = KTOKEN;
             tok->str[0] = ch;
             tok->str[1] = EOS;
-            return (tok->type);
+            return (tok->token);
          case '[':
             tok->token = TOSQBRK;
-            tok->type = KTOKEN;
             tok->str[0] = ch;
             tok->str[1] = EOS;
-            return (tok->type);
+            return (tok->token);
          case ']':
             tok->token = TCSQBRK;
-            tok->type = KTOKEN;
             tok->str[0] = ch;
             tok->str[1] = EOS;
-            return (tok->type);
+            return (tok->token);
          case '{':
             tok->token = TOBRACE;
-            tok->type = KTOKEN;
             tok->str[0] = ch;
             tok->str[1] = EOS;
-            return (tok->type);
+            return (tok->token);
          case '}':
             tok->token = TCBRACE;
-            tok->type = KTOKEN;
             tok->str[0] = ch;
             tok->str[1] = EOS;
-            return (tok->type);
+            return (tok->token);
          case '.':
             tok->token = TDOT;
-            tok->type = KOP;
             tok->str[0] = ch;
             tok->str[1] = EOS;
-            return (tok->type);
+            return (tok->token);
          case '?':
             tok->token = TQUEST;
-            tok->type = KOP;
             tok->str[0] = ch;
             tok->str[1] = EOS;
-            return (tok->type);
+            return (tok->token);
          case '~':
             tok->token = TNOT;
-            tok->type = KOP;
             tok->str[0] = ch;
             tok->str[1] = EOS;
-            return (tok->type);
+            return (tok->token);
          case '#':
          case '$':
          case '`':
          case '@':
          case '\\':
             tok->token = TINVAL;
-            tok->type = KINVALID;
             tok->str[0] = ch;
             tok->str[1] = EOS;
-            return (tok->type);
+            return (tok->token);
          case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j':
          case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': case 'q': case 'r': case 's': case 't':
          case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
@@ -397,13 +383,11 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i] = EOS;
             if ((token = lookupKeyword(tok->str)) == TNULL) {
                tok->token = TID;
-               tok->type = KNAME;
             }
             else {
                tok->token = token;
-               tok->type = KKEYWORD;
             }
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 2:        // seen '|'
@@ -412,24 +396,21 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i++] = ch;
             tok->str[i] = EOS;
             tok->token = TLOGOR;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else if (ch == '=') {
             state = 0;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
             tok->token = TORAB;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
             tok->token = TOR;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 3:        // seen '='
@@ -438,16 +419,14 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i++] = ch;
             tok->str[i] = EOS;
             tok->token = TEQ;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
             tok->token = TASSIGN;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 4:        // Seen '1' to '9' (decimal number)
@@ -474,8 +453,7 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i] = EOS;
             tok->token = TINTLIT;
             tok->iValue = atoi(tok->str);
-            tok->type = KNUMBER;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 5:        // seen '*'
@@ -484,16 +462,14 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i++] = ch;
             tok->str[i] = EOS;
             tok->token = TTIMESAB;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
             tok->token = TSTAR;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 6:        // seen '!'
@@ -502,16 +478,14 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i++] = ch;
             tok->str[i] = EOS;
             tok->token = TNE;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
             tok->token = TLOGNOT;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 7:        // seen '+'
@@ -520,24 +494,21 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->token = TPLUSAB;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else if (ch == '+') {
             state = 0;
             tok->token = TINC;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->token = TPLUS;
             tok->str[i] = EOS;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 8:        // seen '-'
@@ -546,32 +517,28 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->token = TMINUSAB;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else if (ch == '-') {
             state = 0;
             tok->token = TDEC;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else if (ch == '>') {
             state = 0;
             tok->token = TPOINT;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             state = 0;
             tok->token = TMINUS;
             ungetc(ch, fp);
             tok->str[i] = EOS;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 9:        // seen '&'
@@ -580,24 +547,21 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->token = TANDAB;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else if (ch == '&') {
             state = 0;
             tok->token = TLOGAND;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->token = TAND;
             tok->str[i] = EOS;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
       case 10:       // seen '/'
          if (ch == '=') {
@@ -605,8 +569,7 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->token = TDIVAB;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else if (ch == '/') {
             state = 11;
@@ -619,8 +582,7 @@ int GetToken(FILE *fp, struct Token *tok)
             ungetc(ch, fp);
             tok->str[i] = EOS;
             tok->token = TDIV;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 11:       // seen '//', comment to end-of-line
@@ -636,8 +598,7 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->str[i] = EOS;
             tok->token = TSTRLIT;
-            tok->type = KSTRING;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             tok->str[i++] = ch;
@@ -675,16 +636,14 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->token = TMODAB;
             tok->str[i++] = ch;
             tok->str[i] = EOS;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->token = TMOD;
             tok->str[i] = EOS;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 15:       // seen '>'
@@ -693,8 +652,7 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i++] = ch;
             tok->str[i] = EOS;
             tok->token = TGE;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else if (ch == '>') {
             state = 16;
@@ -706,8 +664,7 @@ int GetToken(FILE *fp, struct Token *tok)
             ungetc(ch, fp);
             tok->str[i] = EOS;
             tok->token = TGT;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 16:       // seen '>>'
@@ -716,16 +673,14 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i++] = ch;
             tok->str[i] = EOS;
             tok->token = TRSHTAB;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
             tok->token = TRSHT;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 17:       // seen '<'
@@ -734,8 +689,7 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i++] = ch;
             tok->str[i] = EOS;
             tok->token = TLE;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else if (ch == '<') {
             state = 18;
@@ -747,8 +701,7 @@ int GetToken(FILE *fp, struct Token *tok)
             ungetc(ch, fp);
             tok->str[i] = EOS;
             tok->token = TLT;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 18:       // seen '<<'
@@ -757,16 +710,14 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i++] = ch;
             tok->str[i] = EOS;
             tok->token = TLSHTAB;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, fp);
             tok->str[i] = EOS;
             tok->token = TLSHT;
-            tok->type = KOP;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 19:
@@ -834,8 +785,7 @@ int GetToken(FILE *fp, struct Token *tok)
             state = 0;
             tok->iValue = tok->str[0];
             tok->token = TINTLIT;
-            tok->type = KNUMBER;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             state = 23;
@@ -866,8 +816,7 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i] = EOS;
             tok->token = TINTLIT;
             tok->iValue = strtoul(tok->str, NULL, 8);
-            tok->type = KNUMBER;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 25:       // seen '0' followed by '0' to '7' (octal number)
@@ -890,8 +839,7 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i] = EOS;
             tok->token = TINTLIT;
             tok->iValue = strtoul(tok->str, NULL, 8);
-            tok->type = KNUMBER;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 26:       // seen '0x' (hex number)
@@ -912,8 +860,7 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i] = EOS;
             tok->token = TINTLIT;
             tok->iValue = strtoul(&tok->str[2], NULL, 16);
-            tok->type = KNUMBER;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 27:       // seen '.' after decimal digits
@@ -930,8 +877,7 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i] = EOS;
             tok->token = TFLOATLIT;
             tok->fValue = strtod(tok->str, NULL);
-            tok->type = KNUMBER;
-            return (tok->type);
+            return (tok->token);
          }
          else if ((ch == 'l') || (ch == 'L')) {
             tok->str[i++] = ch;
@@ -939,8 +885,7 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i] = EOS;
             tok->token = TFLOATLIT;
             tok->fValue = strtod(tok->str, NULL);
-            tok->type = KNUMBER;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             state = 0;
@@ -948,8 +893,7 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i] = EOS;
             tok->token = TFLOATLIT;
             tok->fValue = strtod(tok->str, NULL);
-            tok->type = KNUMBER;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       case 28:       // seen 'e' or 'E' after decimal digits
@@ -965,8 +909,7 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i] = EOS;
             tok->token = TFLOATLIT;
             tok->fValue = strtod(tok->str, NULL);
-            tok->type = KNUMBER;
-            return (tok->type);
+            return (tok->token);
          }
          else if ((ch == 'l') || (ch == 'L')) {
             tok->str[i++] = ch;
@@ -974,8 +917,7 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i] = EOS;
             tok->token = TFLOATLIT;
             tok->fValue = strtod(tok->str, NULL);
-            tok->type = KNUMBER;
-            return (tok->type);
+            return (tok->token);
          }
          else {
             state = 0;
@@ -983,18 +925,16 @@ int GetToken(FILE *fp, struct Token *tok)
             tok->str[i] = EOS;
             tok->token = TFLOATLIT;
             tok->fValue = strtod(tok->str, NULL);
-            tok->type = KNUMBER;
-            return (tok->type);
+            return (tok->token);
          }
          break;
       }
    }
 
-   tok->type = KNULL;
    tok->str[0] = ch;
    tok->str[1] = EOS;
 
-   return (tok->type);
+   return (tok->token);
 }
 
 

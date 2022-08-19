@@ -22,22 +22,11 @@ enum eToken {
    TENUM, TSTRUCT, TUNION,
 };
 
-enum eTokenType {
-   KNULL,
-   KTOKEN,
-   KINVALID,
-   KNAME,
-   KNUMBER,
-   KSTRING,
-   KKEYWORD,
-   KOP,
-};
 
 struct Token {
-   int/**/type;
    int/**/iValue;
    double/*/*/fValue;
-   enum/***/eToken/****/token;
+   enum/*//*/eToken/***/token;
    char/* */str[256];
 };
 
