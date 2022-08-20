@@ -6,6 +6,8 @@
 
 #include "codegen.h"
 
+#define NAME_PREFIX  ('_')
+
 static int NextLabel = 0;
 static FILE *Asm = NULL;
 
@@ -117,6 +119,64 @@ int LoadIntConstant(const int val, const int reg, const char comment[])
    case 'Y':
    case 'y':
       Emit("ldy", immediate, comment);
+      break;
+   }
+}
+
+
+/* EmitExternInt --- emit declaration for an extern int variable */
+
+int EmitExternInt(const char name[], const int init, const char comment[])
+{
+   fprintf(Asm, "%c%-30s fdb  %d     ; %s\n", NAME_PREFIX, name, init, comment);
+}
+
+
+/* LoadExternInt --- load an extern int into a given register */
+
+int LoadExternInt(const char name[], const int reg, const char comment[])
+{
+   char target[30];
+
+   snprintf(target, sizeof (target), "%c%s", NAME_PREFIX, name);
+   
+   switch (reg) {
+   case 'D':
+   case 'd':
+      Emit("ldd", target, comment);
+      break;
+   case 'X':
+   case 'x':
+      Emit("ldx", target, comment);
+      break;
+   case 'Y':
+   case 'y':
+      Emit("ldy", target, comment);
+      break;
+   }
+}
+
+
+/* StoreExternInt --- store a register into an extern int variable */
+
+int StoreExternInt(const char name[], const int reg, const char comment[])
+{
+   char target[30];
+
+   snprintf(target, sizeof (target), "%c%s", NAME_PREFIX, name);
+   
+   switch (reg) {
+   case 'D':
+   case 'd':
+      Emit("std", target, comment);
+      break;
+   case 'X':
+   case 'x':
+      Emit("stx", target, comment);
+      break;
+   case 'Y':
+   case 'y':
+      Emit("sty", target, comment);
       break;
    }
 }

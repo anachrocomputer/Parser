@@ -76,11 +76,14 @@ void parser(const char fname[], FILE *fp)
    EmitLabel(l2);
    LoadIntConstant(42, 'D', "Load constant 42");
    StoreStaticInt(s2, 'D', "Store 'state'");
+   StoreExternInt("Wellerman", 'D', "Store 'Wellerman'");
+   LoadExternInt("Wellerman", 'D', "Load 'Welleman'");
    LoadStaticChar(s3, 'D', true, "Load 'letter'");
    LoadStaticInt(s2, 'X', "Load 'state'");
    LoadStaticLong(s1, "Load 'bytes'");
    EmitJump(l1, "Jump back to l1");
    Emit("rts", "", "Return to caller");
+   EmitExternInt("Wellerman", 42, "int Wellerman");
    EmitStaticLong(s1, 65536L, "bytes");
    EmitStaticInt(s2, 42, "state");
    EmitStaticChar(s3, 'A', "letter");
