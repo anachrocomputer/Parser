@@ -1,7 +1,7 @@
 # Makefile for C parser                                        2022-08-04
 
 CC=gcc
-CFLAGS=-c
+CFLAGS=-c -Wall
 
 LD=gcc
 LDFLAGS=

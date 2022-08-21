@@ -101,6 +101,8 @@ bool CloseSourceFile(void)
 {
    if (Src != NULL)
       fclose(Src);
+   
+   return (true);
 }
 
 
