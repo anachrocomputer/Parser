@@ -2,8 +2,8 @@
 /* Copyright (c) 2022 John Honniball. All rights reserved              */
 
 void CodeGenInit(void);
-int OpenAssemblerFile(const char fname[]);
-int CloseAssemblerFile(void);
+bool OpenAssemblerFile(const char fname[]);
+bool CloseAssemblerFile(void);
 int Emit(const char inst[], const char oper[], const char comment[]);
 int AllocLabel(const char purpose);
 void EmitLabel(const int label);

@@ -23,6 +23,7 @@ struct Symbol {
 
 static int NextSym = 0;
 static struct Symbol SymTab[MAXSYMS];
+static FILE *Src = NULL;
 
 /* LexicalInit --- initialise this module */
 
@@ -74,6 +75,32 @@ void installkw(const char keyword[], enum eToken token, bool isType)
    sym->token     = token;
    sym->isType    = isType;
    sym->isKeyword = true;
+}
+
+
+/* OpenSourceFile --- open the C source code file */
+
+bool OpenSourceFile(const char fname[])
+{
+   FILE *fp;
+
+   if ((fp = fopen(fname, "r")) == NULL) {
+      fprintf(stderr, "%s: can't open\n", fname);
+      return (false);
+   }
+   
+   Src = fp;
+   
+   return (true);
+}
+
+
+/* CloseSourceFile --- close the source code file */
+
+bool CloseSourceFile(void)
+{
+   if (Src != NULL)
+      fclose(Src);
 }
 
 
@@ -194,7 +221,9 @@ void PrintToken(const struct Token *tok)
 }
 
 
-int GetToken(FILE *fp, struct Token *tok)
+/* GetToken --- get the next lexical token from the source file */
+
+int GetToken(struct Token *tok)
 {
    int ch;
    int i;
@@ -206,7 +235,7 @@ int GetToken(FILE *fp, struct Token *tok)
    tok->str[0] = EOS;
    
    while (1) {
-      if ((ch = getc(fp)) == EOF)
+      if ((ch = getc(Src)) == EOF)
          return (EOF);
 
       switch (state) {
@@ -379,7 +408,7 @@ int GetToken(FILE *fp, struct Token *tok)
             enum eToken token;
             
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             if ((token = lookupKeyword(tok->str)) == TNULL) {
                tok->token = TID;
@@ -407,7 +436,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TOR;
             return (tok->token);
@@ -423,7 +452,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TASSIGN;
             return (tok->token);
@@ -449,7 +478,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TINTLIT;
             tok->iValue = atoi(tok->str);
@@ -466,7 +495,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TSTAR;
             return (tok->token);
@@ -482,7 +511,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TLOGNOT;
             return (tok->token);
@@ -505,7 +534,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->token = TPLUS;
             tok->str[i] = EOS;
             return (tok->token);
@@ -536,7 +565,7 @@ int GetToken(FILE *fp, struct Token *tok)
          else {
             state = 0;
             tok->token = TMINUS;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             return (tok->token);
          }
@@ -558,7 +587,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->token = TAND;
             tok->str[i] = EOS;
             return (tok->token);
@@ -579,7 +608,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TDIV;
             return (tok->token);
@@ -640,7 +669,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->token = TMOD;
             tok->str[i] = EOS;
             return (tok->token);
@@ -661,7 +690,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TGT;
             return (tok->token);
@@ -677,7 +706,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TRSHT;
             return (tok->token);
@@ -698,7 +727,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TLT;
             return (tok->token);
@@ -714,7 +743,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TLSHT;
             return (tok->token);
@@ -812,7 +841,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TINTLIT;
             tok->iValue = strtoul(tok->str, NULL, 8);
@@ -835,7 +864,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TINTLIT;
             tok->iValue = strtoul(tok->str, NULL, 8);
@@ -856,7 +885,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TINTLIT;
             tok->iValue = strtoul(&tok->str[2], NULL, 16);
@@ -889,7 +918,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TFLOATLIT;
             tok->fValue = strtod(tok->str, NULL);
@@ -921,7 +950,7 @@ int GetToken(FILE *fp, struct Token *tok)
          }
          else {
             state = 0;
-            ungetc(ch, fp);
+            ungetc(ch, Src);
             tok->str[i] = EOS;
             tok->token = TFLOATLIT;
             tok->fValue = strtod(tok->str, NULL);

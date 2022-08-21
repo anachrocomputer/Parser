@@ -21,7 +21,7 @@ void CodeGenInit(void)
 
 /* OpenAssemblerFile --- open the output file and write a header */
 
-int OpenAssemblerFile(const char fname[])
+bool OpenAssemblerFile(const char fname[])
 {
    Asm = fopen("a.asm", "w");
    
@@ -29,19 +29,19 @@ int OpenAssemblerFile(const char fname[])
    fprintf(Asm, "        org   $0400\n");
    fprintf(Asm, "appEntry\n");
 
-   return (1);
+   return (true);
 }
 
 
 /* CloseAssemblerFile --- write a trailer and close the output file */
 
-int CloseAssemblerFile(void)
+bool CloseAssemblerFile(void)
 {
    fprintf(Asm, "        end  appEntry\n");
 
    fclose(Asm);
    
-   return (1);
+   return (true);
 }
 
 

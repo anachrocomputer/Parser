@@ -31,8 +31,10 @@ struct Token {
 };
 
 void LexicalInit(void);
-int GetToken(FILE *fp, struct Token *tok);
-char *tokenAsStr(const struct Token *tok);
 void installkw(const char keyword[], enum eToken token, bool isType);
+bool OpenSourceFile(const char fname[]);
+bool CloseSourceFile(void);
+int GetToken(struct Token *tok);
+char *tokenAsStr(const struct Token *tok);
 enum eToken lookupKeyword(const char name[]);
 void PrintToken(const struct Token *tok);

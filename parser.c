@@ -10,7 +10,7 @@
 
 void initialise(void);
 void parse(const char fname[]);
-void parser(const char fname[], FILE *fp);
+void parser(const char fname[]);
 
 
 int main(const int argc, const char *argv[])
@@ -31,6 +31,8 @@ int main(const int argc, const char *argv[])
 }
 
 
+/* initialise --- call all module initialisation functions */
+
 void initialise(void)
 {
    CodeGenInit();
@@ -38,24 +40,26 @@ void initialise(void)
 }
 
 
+/* parse --- open, parse and translate a single source code file */
+
 void parse(const char fname[])
 {
-   FILE *fp;
-
-   if ((fp = fopen(fname, "r")) == NULL) {
-      fprintf(stderr, "%s: can't open\n", fname);
+   if (OpenSourceFile(fname) == false)
+      return;
+      
+   if (OpenAssemblerFile(fname) == false) {
+      CloseSourceFile();
       return;
    }
    
-   OpenAssemblerFile(fname);
-   
-   parser(fname, fp);
+   parser(fname);
 
    CloseAssemblerFile();
-   fclose (fp);
+   CloseSourceFile();
 }
 
-void parser(const char fname[], FILE *fp)
+
+void parser(const char fname[])
 {
    struct Token tok;
    const int l1 = AllocLabel('L');
@@ -66,8 +70,9 @@ void parser(const char fname[], FILE *fp)
 
    EmitLabel(l1);
    
-   while (GetToken(fp, &tok) != EOF)
+   while (GetToken(&tok) != EOF)
       PrintToken(&tok);
+   /* ParseDeclaration(); */
       
    
    Emit("nop", "", "Do nothing");
