@@ -23,7 +23,14 @@ void CodeGenInit(void)
 
 bool OpenAssemblerFile(const char fname[])
 {
-   Asm = fopen("a.asm", "w");
+   char asmName[256];
+   char *p;
+   
+   strncpy(asmName, fname, sizeof (asmName) - 2);
+   p = strrchr(asmName, '.');
+   strcpy(p, ".asm");
+   
+   Asm = fopen(asmName, "w");
    
    fprintf(Asm, "        setdp 0\n");
    fprintf(Asm, "        org   $0400\n");
