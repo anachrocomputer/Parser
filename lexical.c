@@ -24,11 +24,17 @@ struct Symbol {
 static int NextSym = 0;
 static struct Symbol SymTab[MAXSYMS];
 static FILE *Src = NULL;
+static bool TraceTokens = false;
+
+static int GetOneToken(struct Token *tok);
+
 
 /* LexicalInit --- initialise this module */
 
 void LexicalInit(void)
 {
+   TraceTokens = false;
+   
    installkw("break",    TBREAK,    false);
    installkw("case",     TCASE,     false);
    installkw("continue", TCONTINUE, false);
@@ -62,6 +68,14 @@ void LexicalInit(void)
    installkw("struct",   TSTRUCT,   true);
    installkw("union",    TUNION,    true);
    installkw("enum",     TENUM,     true);
+}
+
+
+/* SetTokenTraceFlag --- set or clear the lexical token trace flag */
+
+void SetTokenTraceFlag(const bool enabled)
+{
+   TraceTokens = enabled;
 }
 
 
@@ -223,9 +237,23 @@ void PrintToken(const struct Token *tok)
 }
 
 
-/* GetToken --- get the next lexical token from the source file */
+/* GetToken --- get the a token and print trace if enabled */
 
 int GetToken(struct Token *tok)
+{
+   GetOneToken(tok);
+
+   if (TraceTokens) {
+      PrintToken(tok);
+   }
+   
+   return (tok->token);
+}
+
+
+/* GetOneToken --- get the next lexical token from the source file */
+
+static int GetOneToken(struct Token *tok)
 {
    int ch;
    int i;

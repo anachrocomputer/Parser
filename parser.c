@@ -23,6 +23,11 @@ int main(const int argc, const char *argv[])
    
    for (i = 1; i < argc; i++) {
       if (argv[i][0] == '-') {
+         switch (argv[i][1]) {
+         case 'T':
+            SetTokenTraceFlag(true);
+            break;
+         }
       }
       else {
          parse(argv[i]);
@@ -71,7 +76,6 @@ void parser(const char fname[])
    const int s3 = AllocLabel('C');
 
    GetToken(&tok);
-   PrintToken(&tok);
 
    while (ParseDeclaration(&tok) != EOF)
       ;
@@ -122,18 +126,15 @@ int ParseDeclaration(struct Token *tok)
       type = tok->token;
 
       GetToken(tok);
-      PrintToken(tok);
 
       while (tok->token == TSTAR) {
          pLevel++;
          GetToken(tok);
-         PrintToken(tok);
       }
       
       if (tok->token == TID) {
          strcpy(name, tok->str);
          GetToken(tok);
-         PrintToken(tok);
       }
       else {
          fprintf(stderr, "Missing identifier in declaration\n");
@@ -142,7 +143,6 @@ int ParseDeclaration(struct Token *tok)
       switch (tok->token) {
       case TASSIGN:  // Scalar initialiser
          GetToken(tok);
-         PrintToken(tok);
          if (pLevel == 0) {
             switch (type) {
             case TCHAR:
@@ -168,13 +168,11 @@ int ParseDeclaration(struct Token *tok)
             EmitExternPointer(name, tok->iValue, "pointer");
          }
          GetToken(tok);
-         PrintToken(tok);
          break;
       case TOSQBRK:  // Array
          break;
       case TOPAREN:  // Function
          GetToken(tok);
-         PrintToken(tok);
          if (tok->token != TCPAREN) {
             fprintf(stderr, "Malformed function declaration");
          }
@@ -182,7 +180,6 @@ int ParseDeclaration(struct Token *tok)
             printf("Function '%s()'\n", name);
          }
          GetToken(tok);
-         PrintToken(tok);
          break;
       case TSEMI:    // Uninitialised scalar
          if (pLevel == 0) {
@@ -226,7 +223,6 @@ int ParseDeclaration(struct Token *tok)
    }
    
    GetToken(tok);
-   PrintToken(tok);
    
    return (tok->token);
 }

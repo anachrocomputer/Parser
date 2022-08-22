@@ -32,6 +32,7 @@ struct Token {
 };
 
 void LexicalInit(void);
+void SetTokenTraceFlag(const bool enabled);
 void installkw(const char keyword[], enum eToken token, bool isType);
 bool OpenSourceFile(const char fname[]);
 bool CloseSourceFile(void);
