@@ -124,11 +124,61 @@ int LoadIntConstant(const int val, const int reg, const char comment[])
 }
 
 
+/* EmitExternChar --- emit declaration for an extern char variable */
+
+int EmitExternChar(const char name[], const int init, const char comment[])
+{
+   fprintf(Asm, "%c%-30s fcb  %d     ; %s\n", NAME_PREFIX, name, init, comment);
+}
+
+
 /* EmitExternInt --- emit declaration for an extern int variable */
 
 int EmitExternInt(const char name[], const int init, const char comment[])
 {
    fprintf(Asm, "%c%-30s fdb  %d     ; %s\n", NAME_PREFIX, name, init, comment);
+}
+
+
+/* EmitExternPointer --- emit declaration for an extern pointer variable */
+
+int EmitExternPointer(const char name[], const int init, const char comment[])
+{
+   fprintf(Asm, "%c%-30s fdb  %d     ; %s\n", NAME_PREFIX, name, init, comment);
+}
+
+
+/* EmitExternFloat --- emit declaration for an extern float variable */
+
+int EmitExternFloat(const char name[], const float init, const char comment[])
+{
+   int b1, b2, b3, b4;
+   
+   b1 = 0;  // TODO: generate IEEE-754 'float' here
+   b2 = 0;
+   b3 = 0;
+   b4 = 0;
+
+   fprintf(Asm, "%c%-30s fcb  %d,%d,%d,%d ; %g %s\n", NAME_PREFIX, name, b1, b2, b3, b4, init, comment);
+}
+
+
+/* EmitExternDouble --- emit declaration for an extern double variable */
+
+int EmitExternDouble(const char name[], const double init, const char comment[])
+{
+   int b1, b2, b3, b4, b5, b6, b7, b8;
+   
+   b1 = 0;  // TODO: generate IEEE-754 'double' here
+   b2 = 0;
+   b3 = 0;
+   b4 = 0;
+   b5 = 0;
+   b6 = 0;
+   b7 = 0;
+   b8 = 0;
+
+   fprintf(Asm, "%c%-30s fcb  %d,%d,%d,%d,%d,%d,%d,%d ; %g %s\n", NAME_PREFIX, name, b1, b2, b3, b4, b5, b6, b7, b8, init, comment);
 }
 
 

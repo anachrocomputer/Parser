@@ -237,8 +237,10 @@ int GetToken(struct Token *tok)
    tok->str[0] = EOS;
    
    while (1) {
-      if ((ch = getc(Src)) == EOF)
-         return (EOF);
+      if ((ch = getc(Src)) == EOF) {
+         tok->token = TEOF;
+         return (tok->token);
+      }
 
       switch (state) {
       case 0:
@@ -1221,6 +1223,9 @@ char *tokenAsStr(const struct Token *tok)
       break;
    case TUNION:
       str = "TUNION";
+      break;
+   case TEOF:
+      str = "EOF";
       break;
    default:
       str = "ERROR";
