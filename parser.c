@@ -177,7 +177,28 @@ int ParseDeclaration(struct Token *tok)
             fprintf(stderr, "Malformed function declaration");
          }
          else {
-            printf("Function '%s()'\n", name);
+            if (pLevel == 0) {
+               switch (type) {
+               case TVOID:
+                  printf("Function '%s()' returning void\n", name);
+                  break;
+               case TCHAR:
+                  printf("Function '%s()' returning char\n", name);
+                  break;
+               case TINT:
+                  printf("Function '%s()' returning int\n", name);
+                  break;
+               case TFLOAT:
+                  printf("Function '%s()' returning float\n", name);
+                  break;
+               case TDOUBLE:
+                  printf("Function '%s()' returning double\n", name);
+                  break;
+               }
+            }
+            else {
+               printf("Function '%s()' returning pointer\n", name);
+            }
          }
          GetToken(tok);
          break;
