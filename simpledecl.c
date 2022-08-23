@@ -28,3 +28,34 @@ double ConsumeRum();
 
 char *NameOfTheShip();
 
+char *NameOfTheShip()
+{
+   int tea;
+   char *billy;
+   char captainsInitial;
+   float heading;
+   double knots;
+   
+   return;
+   42;
+   for;
+   tea;
+   if;
+   billy;
+   do;
+   captainsInitial;
+   switch;
+   0;
+   goto;
+   Whale;
+   break;
+   continue;
+   while;
+}
+
+int ToungingIsDone = 0;
+
+void TakeOurLeaveAndGo()
+{
+   return;
+}

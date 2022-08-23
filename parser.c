@@ -13,6 +13,7 @@ void initialise(void);
 void parse(const char fname[]);
 void parser(const char fname[]);
 int ParseDeclaration(struct Token *tok);
+void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, const int type);
 
 
 int main(const int argc, const char *argv[])
@@ -201,6 +202,9 @@ int ParseDeclaration(struct Token *tok)
             }
          }
          GetToken(tok);
+         if (tok->token == TOBRACE) {
+            ParseFunctionBody(tok, name, pLevel, type);
+         }
          break;
       case TSEMI:    // Uninitialised scalar
          if (pLevel == 0) {
@@ -239,8 +243,8 @@ int ParseDeclaration(struct Token *tok)
       break;
    }
 
-   if (tok->token != TSEMI) {
-      fprintf(stderr, "Missing semicolon in declaration\n");
+   if (!((tok->token == TSEMI) || (tok->token == TCBRACE))) {
+      fprintf(stderr, "Missing semicolon or close curly bracket in declaration\n");
    }
    
    GetToken(tok);
@@ -248,3 +252,137 @@ int ParseDeclaration(struct Token *tok)
    return (tok->token);
 }
 
+
+/* ParseFunctionBody --- parse the body of a function */
+
+void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, const int type)
+{
+   int autoSize = 0;
+   const int returnLabel = AllocLabel('R');
+   
+   Emit("pshs", "u", "Save old frame pointer");
+   Emit("tfr", "s,u", "Make new frame pointer");
+   
+   GetToken(tok);
+   
+   while ((tok->token == TINT) || (tok->token == TCHAR) ||
+          (tok->token == TFLOAT) || (tok->token == TDOUBLE)) {
+      char name[256];
+      int type = tok->token;
+      int pLevel = 0;
+      
+      GetToken(tok);
+
+      while (tok->token == TSTAR) {
+         pLevel++;
+         GetToken(tok);
+      }
+         
+      if (tok->token == TID) {
+         strcpy(name, tok->str);
+         if (pLevel == 0) {
+            switch (type) {
+            case TCHAR:
+               printf("Local 'char' variable '%s'\n", name);
+               autoSize += 2;
+               break;
+            case TINT:
+               printf("Local 'int' variable '%s'\n", name);
+               autoSize += 1;
+               break;
+            case TFLOAT:
+               printf("Local 'float' variable '%s'\n", name);
+               autoSize += 4;
+               break;
+            case TDOUBLE:
+               printf("Local 'double' variable '%s'\n", name);
+               autoSize += 8;
+               break;
+            }
+         }
+         else {
+            printf("Local pointer variable '%s'\n", name);
+               autoSize += 2;
+         }
+      }
+      else {
+         fprintf(stderr, "Expected identifier in local variable declaration\n");
+      }
+      
+      GetToken(tok);
+      
+      if (tok->token != TSEMI) {
+         fprintf(stderr, "Missing semicolon in local variable declaration\n");
+      }
+
+      GetToken(tok);
+   }
+   
+   printf("Size of 'auto' variables: %d\n", autoSize);
+   if (autoSize != 0) {
+      char frame[32];
+      
+      snprintf(frame, sizeof (frame), "-%d,s", autoSize);
+      Emit("leas", frame, "Allocate stack frame");
+   }
+   
+   while (tok->token != TCBRACE) {
+      switch (tok->token) {
+      case TRETURN:
+         printf("<return>\n");
+         EmitJump(returnLabel, "Jump to return");
+         GetToken(tok);
+         break;
+      case TIF:
+         printf("<if>\n");
+         GetToken(tok);
+         break;
+      case TDO:
+         printf("<do>\n");
+         GetToken(tok);
+         break;
+      case TFOR:
+         printf("<for>\n");
+         GetToken(tok);
+         break;
+      case TWHILE:
+         printf("<while>\n");
+         GetToken(tok);
+         break;
+      case TGOTO:
+         printf("<goto>\n");
+         GetToken(tok);
+         break;
+      case TCONTINUE:
+         printf("<continue>\n");
+         GetToken(tok);
+         break;
+      case TBREAK:
+         printf("<break>\n");
+         GetToken(tok);
+         break;
+      case TSWITCH:
+         printf("<switch>\n");
+         GetToken(tok);
+         break;
+      default:
+         printf("<expression>\n");
+         Emit("nop", "", "Do nothing");
+         GetToken(tok);
+         break;
+      }
+      
+      if (tok->token != TSEMI) {
+         fprintf(stderr, "Missing semicolon at end of statement\n");
+      }
+
+      GetToken(tok);
+   }
+   
+   EmitLabel(returnLabel);
+   Emit("tfr", "u,s", "Deallocate stack frame");
+   Emit("puls", "u", "Restore frame pointer");
+   Emit("rts", "", "Return to caller");
+
+   printf("%s returns\n", __FUNCTION__);
+}
