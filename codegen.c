@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "codegen.h"
 
@@ -75,6 +76,14 @@ int AllocLabel(const char purpose)
 void EmitLabel(const int label)
 {
    fprintf(Asm, "l%04d\n", label);
+}
+
+
+/* EmitFunctionLabel --- emit a label for a function name */
+
+void EmitFunctionLabel(const char name[])
+{
+   fprintf(Asm, "%c%-44s ; Function entry point\n", NAME_PREFIX, name);
 }
 
 

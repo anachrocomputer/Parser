@@ -260,6 +260,7 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
    int autoSize = 0;
    const int returnLabel = AllocLabel('R');
    
+   EmitFunctionLabel(name);
    Emit("pshs", "u", "Save old frame pointer");
    Emit("tfr", "s,u", "Make new frame pointer");
    
