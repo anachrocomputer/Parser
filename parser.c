@@ -174,6 +174,11 @@ int ParseDeclaration(struct Token *tok)
          break;
       case TOPAREN:  // Function
          GetToken(tok);
+         
+         if (tok->token == TVOID) {
+            GetToken(tok);
+         }
+         
          if (tok->token != TCPAREN) {
             fprintf(stderr, "Malformed function declaration");
          }
@@ -201,10 +206,14 @@ int ParseDeclaration(struct Token *tok)
                printf("Function '%s()' returning pointer\n", name);
             }
          }
+
          GetToken(tok);
+
          if (tok->token == TOBRACE) {
+            printf("<function_definition>\n");
             ParseFunctionBody(tok, name, pLevel, type);
          }
+
          break;
       case TSEMI:    // Uninitialised scalar
          if (pLevel == 0) {

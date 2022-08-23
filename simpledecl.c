@@ -28,7 +28,7 @@ double ConsumeRum();
 
 char *NameOfTheShip();
 
-char *NameOfTheShip()
+char *NameOfTheShip(void)
 {
    int tea;
    char *billy;
@@ -55,7 +55,7 @@ char *NameOfTheShip()
 
 int ToungingIsDone = 0;
 
-void TakeOurLeaveAndGo()
+void TakeOurLeaveAndGo(void)
 {
    return;
 }
