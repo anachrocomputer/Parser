@@ -71,7 +71,7 @@ int AllocLabel(const char purpose)
 }
 
 
-/* EmitLabel --- emit a label into the assembly-language file */
+/* EmitLabel --- emit an allocated label into the assembly-language file */
 
 void EmitLabel(const int label)
 {
@@ -89,7 +89,7 @@ void EmitFunctionLabel(const char name[])
 
 /* EmitStaticLong --- emit declaration for a local static long int variable */
 
-int EmitStaticLong(const int label, const long int init, const char comment[])
+void EmitStaticLong(const int label, const long int init, const char comment[])
 {
    fprintf(Asm, "l%04d   fqb  %ld     ; %s\n", label, init, comment);
 }
@@ -97,7 +97,7 @@ int EmitStaticLong(const int label, const long int init, const char comment[])
 
 /* LoadStaticLong --- load a static long int into register Q */
 
-int LoadStaticLong(const int label, const char comment[])
+void LoadStaticLong(const int label, const char comment[])
 {
    char target[8];
 
@@ -109,7 +109,7 @@ int LoadStaticLong(const int label, const char comment[])
 
 /* EmitStaticInt --- emit declaration for a local static int variable */
 
-int EmitStaticInt(const int label, const int init, const char comment[])
+void EmitStaticInt(const int label, const int init, const char comment[])
 {
    fprintf(Asm, "l%04d   fdb  %d     ; %s\n", label, init, comment);
 }
@@ -117,7 +117,7 @@ int EmitStaticInt(const int label, const int init, const char comment[])
 
 /* LoadIntConstant --- load an int constant into a given register */
 
-int LoadIntConstant(const int val, const int reg, const char comment[])
+void LoadIntConstant(const int val, const int reg, const char comment[])
 {
    char immediate[8];
 
@@ -142,7 +142,7 @@ int LoadIntConstant(const int val, const int reg, const char comment[])
 
 /* EmitExternChar --- emit declaration for an extern char variable */
 
-int EmitExternChar(const char name[], const int init, const char comment[])
+void EmitExternChar(const char name[], const int init, const char comment[])
 {
    fprintf(Asm, "%c%-30s fcb  %d     ; %s\n", NAME_PREFIX, name, init, comment);
 }
@@ -150,7 +150,7 @@ int EmitExternChar(const char name[], const int init, const char comment[])
 
 /* EmitExternInt --- emit declaration for an extern int variable */
 
-int EmitExternInt(const char name[], const int init, const char comment[])
+void EmitExternInt(const char name[], const int init, const char comment[])
 {
    fprintf(Asm, "%c%-30s fdb  %d     ; %s\n", NAME_PREFIX, name, init, comment);
 }
@@ -158,7 +158,7 @@ int EmitExternInt(const char name[], const int init, const char comment[])
 
 /* EmitExternPointer --- emit declaration for an extern pointer variable */
 
-int EmitExternPointer(const char name[], const int init, const char comment[])
+void EmitExternPointer(const char name[], const int init, const char comment[])
 {
    fprintf(Asm, "%c%-30s fdb  %d     ; %s\n", NAME_PREFIX, name, init, comment);
 }
@@ -166,7 +166,7 @@ int EmitExternPointer(const char name[], const int init, const char comment[])
 
 /* EmitExternFloat --- emit declaration for an extern float variable */
 
-int EmitExternFloat(const char name[], const float init, const char comment[])
+void EmitExternFloat(const char name[], const float init, const char comment[])
 {
    int b1, b2, b3, b4;
    
@@ -181,7 +181,7 @@ int EmitExternFloat(const char name[], const float init, const char comment[])
 
 /* EmitExternDouble --- emit declaration for an extern double variable */
 
-int EmitExternDouble(const char name[], const double init, const char comment[])
+void EmitExternDouble(const char name[], const double init, const char comment[])
 {
    int b1, b2, b3, b4, b5, b6, b7, b8;
    
@@ -200,7 +200,7 @@ int EmitExternDouble(const char name[], const double init, const char comment[])
 
 /* LoadExternInt --- load an extern int into a given register */
 
-int LoadExternInt(const char name[], const int reg, const char comment[])
+void LoadExternInt(const char name[], const int reg, const char comment[])
 {
    char target[30];
 
@@ -225,7 +225,7 @@ int LoadExternInt(const char name[], const int reg, const char comment[])
 
 /* StoreExternInt --- store a register into an extern int variable */
 
-int StoreExternInt(const char name[], const int reg, const char comment[])
+void StoreExternInt(const char name[], const int reg, const char comment[])
 {
    char target[30];
 
@@ -250,7 +250,7 @@ int StoreExternInt(const char name[], const int reg, const char comment[])
 
 /* LoadStaticInt --- load a static int into a given register */
 
-int LoadStaticInt(const int label, const int reg, const char comment[])
+void LoadStaticInt(const int label, const int reg, const char comment[])
 {
    char target[8];
 
@@ -275,7 +275,7 @@ int LoadStaticInt(const int label, const int reg, const char comment[])
 
 /* StoreStaticInt --- store a register into a static int variable */
 
-int StoreStaticInt(const int label, const int reg, const char comment[])
+void StoreStaticInt(const int label, const int reg, const char comment[])
 {
    char target[8];
 
@@ -300,7 +300,7 @@ int StoreStaticInt(const int label, const int reg, const char comment[])
 
 /* EmitStaticChar --- emit declaration for a local static char variable */
 
-int EmitStaticChar(const int label, const int init, const char comment[])
+void EmitStaticChar(const int label, const int init, const char comment[])
 {
    fprintf(Asm, "l%04d   fcb  %d     ; %s\n", label, init, comment);
 }
@@ -308,7 +308,7 @@ int EmitStaticChar(const int label, const int init, const char comment[])
 
 /* LoadStaticChar --- load a local static char variable into a register */
 
-int LoadStaticChar(const int label, const int reg, const bool signExtend, const char comment[])
+void LoadStaticChar(const int label, const int reg, const bool signExtend, const char comment[])
 {
    char *mnem = NULL;
    char target[8];
@@ -331,7 +331,7 @@ int LoadStaticChar(const int label, const int reg, const bool signExtend, const 
 
 /* EmitJump --- emit a jump (possibly relative) to a given label */
 
-int EmitJump(const int label, const char comment[])
+void EmitJump(const int label, const char comment[])
 {
    char target[8];
    
