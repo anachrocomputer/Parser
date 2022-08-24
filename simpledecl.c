@@ -56,13 +56,13 @@ char *NameOfTheShip(void)
    switch;
    0;
    return Soon;
-   goto;
+   goto sea;
    Whale;
    for;
    Sailors;
    while;
    Sugar;
-   goto;
+   goto harbour;
 }
 
 int TonguingIsDone = 0;  // Cutting strips of blubber

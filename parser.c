@@ -22,6 +22,7 @@ void ParseExpression(struct Token *tok);
 void ParseDo(struct Token *tok, const int returnLabel);
 void ParseBreak(struct Token *tok, const int breakLabel);
 void ParseContinue(struct Token *tok, const int continueLabel);
+void ParseGoto(struct Token *tok);
 
 
 int main(const int argc, const char *argv[])
@@ -380,8 +381,7 @@ void ParseStatement(struct Token *tok, const int returnLabel, const int breakLab
       GetToken(tok);
       break;
    case TGOTO:
-      printf("<goto>\n");
-      GetToken(tok);
+      ParseGoto(tok);
       break;
    case TCONTINUE:
       ParseContinue(tok, continueLabel);
@@ -554,3 +554,24 @@ void ParseContinue(struct Token *tok, const int continueLabel)
       fprintf(stderr, "Expected ';' after 'continue'\n");
    }
 }
+
+
+/* ParseGoto --- parse and ignore a 'goto' statement */
+
+void ParseGoto(struct Token *tok)
+{
+   printf("<goto>\n");
+   GetToken(tok);
+   
+   if (tok->token == TID) {
+      GetToken(tok);
+      
+      if (tok->token != TSEMI) {
+         fprintf(stderr, "Expected ';' after 'goto'\n");
+      }
+   }
+   else {
+      fprintf(stderr, "Expected label name after 'goto'\n");
+   }
+}
+
