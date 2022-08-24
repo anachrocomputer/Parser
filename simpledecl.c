@@ -36,20 +36,27 @@ char *NameOfTheShip(void)
    float heading;
    double knots;
    
-   return;
+   {
+      return;
+   }
    42;
    for;
-   tea;
+   '*';
    if;
-   billy;
+   0xff;
    do;
-   captainsInitial;
+   {
+      for;
+      0377;
+   }
    switch;
    0;
    goto;
    Whale;
    break;
+   Sailors;
    continue;
+   Sugar;
    while;
 }
 

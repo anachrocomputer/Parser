@@ -14,6 +14,11 @@ void parse(const char fname[]);
 void parser(const char fname[]);
 int ParseDeclaration(struct Token *tok);
 void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, const int type);
+void ParseStatement(struct Token *tok, const int returnLabel);
+void ParseReturn(struct Token *tok, const int returnLabel);
+void ParseCompoundStatement(struct Token *tok, const int returnLabel);
+void ParseIf(struct Token *tok, const int returnLabel);
+void ParseExpression(struct Token *tok);
 
 
 int main(const int argc, const char *argv[])
@@ -337,56 +342,7 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
    }
    
    while (tok->token != TCBRACE) {
-      switch (tok->token) {
-      case TRETURN:
-         printf("<return>\n");
-         EmitJump(returnLabel, "Jump to return");
-         GetToken(tok);
-         break;
-      case TIF:
-         printf("<if>\n");
-         GetToken(tok);
-         break;
-      case TDO:
-         printf("<do>\n");
-         GetToken(tok);
-         break;
-      case TFOR:
-         printf("<for>\n");
-         GetToken(tok);
-         break;
-      case TWHILE:
-         printf("<while>\n");
-         GetToken(tok);
-         break;
-      case TGOTO:
-         printf("<goto>\n");
-         GetToken(tok);
-         break;
-      case TCONTINUE:
-         printf("<continue>\n");
-         GetToken(tok);
-         break;
-      case TBREAK:
-         printf("<break>\n");
-         GetToken(tok);
-         break;
-      case TSWITCH:
-         printf("<switch>\n");
-         GetToken(tok);
-         break;
-      default:
-         printf("<expression>\n");
-         Emit("nop", "", "Do nothing");
-         GetToken(tok);
-         break;
-      }
-      
-      if (tok->token != TSEMI) {
-         fprintf(stderr, "Missing semicolon at end of statement\n");
-      }
-
-      GetToken(tok);
+      ParseStatement(tok, returnLabel);
    }
    
    EmitLabel(returnLabel);
@@ -395,4 +351,111 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
    Emit("rts", "", "Return to caller");
 
    printf("%s returns\n", __FUNCTION__);
+}
+
+
+/* ParseStatement --- parse a single statement */
+
+void ParseStatement(struct Token *tok, const int returnLabel)
+{
+   switch (tok->token) {
+   case TRETURN:
+      ParseReturn(tok, returnLabel);
+      break;
+   case TIF:
+      ParseIf(tok, returnLabel);
+      break;
+   case TDO:
+      printf("<do>\n");
+      GetToken(tok);
+      break;
+   case TFOR:
+      printf("<for>\n");
+      GetToken(tok);
+      break;
+   case TWHILE:
+      printf("<while>\n");
+      GetToken(tok);
+      break;
+   case TGOTO:
+      printf("<goto>\n");
+      GetToken(tok);
+      break;
+   case TCONTINUE:
+      printf("<continue>\n");
+      GetToken(tok);
+      break;
+   case TBREAK:
+      printf("<break>\n");
+      GetToken(tok);
+      break;
+   case TSWITCH:
+      printf("<switch>\n");
+      GetToken(tok);
+      break;
+   case TOBRACE:
+      ParseCompoundStatement(tok, returnLabel);
+      break;
+   default:
+      ParseExpression(tok);
+      break;
+   }
+   
+   GetToken(tok);
+}
+
+
+/* ParseReturn --- parse a 'return' statement */
+
+void ParseReturn(struct Token *tok, const int returnLabel)
+{
+   printf("<return>\n");
+   GetToken(tok);
+
+   EmitJump(returnLabel, "Jump to return");
+
+   if (tok->token != TSEMI) {
+      fprintf(stderr, "Missing semicolon at end of 'return'\n");
+   }
+}
+
+
+/* ParseCompoundStatement --- parse a compound statement */
+
+void ParseCompoundStatement(struct Token *tok, const int returnLabel)
+{
+   printf("<compound_statement>\n");
+
+   GetToken(tok);
+   
+   while (tok->token != TCBRACE) {
+      ParseStatement(tok, returnLabel);
+   }
+}
+
+
+/* ParseIf --- parse an 'if' statement */
+
+void ParseIf(struct Token *tok, const int returnLabel)
+{
+   printf("<if>\n");
+   GetToken(tok);
+   
+   if (tok->token != TSEMI) {
+      fprintf(stderr, "Missing semicolon at end of 'if'\n");
+   }
+}
+
+
+/* ParseExpression --- parse a single expression */
+
+void ParseExpression(struct Token *tok)
+{
+   printf("<expression>\n");
+   Emit("nop", "", "<expression>");
+   GetToken(tok);
+   
+   if (tok->token != TSEMI) {
+      fprintf(stderr, "Missing semicolon at end of expression\n");
+   }
 }
