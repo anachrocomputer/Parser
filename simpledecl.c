@@ -23,8 +23,8 @@ double *Anchor = 0;
 void PutToSea();
 char SeenWhale();
 int Blow();
-float Buoyancy();
-double ConsumeRum();
+float Buoyancy(void);
+double ConsumeRum(void);
 
 char *NameOfTheShip();
 
@@ -53,7 +53,7 @@ char *NameOfTheShip(void)
    while;
 }
 
-int ToungingIsDone = 0;
+int TonguingIsDone = 0;  // Cutting strips of blubber
 
 void TakeOurLeaveAndGo(void)
 {
