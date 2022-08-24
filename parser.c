@@ -475,14 +475,15 @@ void ParseExpression(struct Token *tok)
 
 void ParseDo(struct Token *tok, const int returnLabel)
 {
-   const int dlabel = AllocLabel('d');
    const int blabel = AllocLabel('b');
+   const int clabel = AllocLabel('c');
+   const int dlabel = AllocLabel('d');
    
    printf("<do>\n");
    EmitLabel(dlabel);
 
    GetToken(tok);
-   ParseStatement(tok, returnLabel, blabel, dlabel);
+   ParseStatement(tok, returnLabel, blabel, clabel);
 
    if (tok->token != TWHILE) {
       fprintf(stderr, "Expected 'while' after 'do'\n");
@@ -491,6 +492,7 @@ void ParseDo(struct Token *tok, const int returnLabel)
       GetToken(tok);
       
       if (tok->token == TOPAREN) {
+         EmitLabel(clabel);
       
          GetToken(tok);
          ParseExpression(tok);
