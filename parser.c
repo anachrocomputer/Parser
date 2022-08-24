@@ -93,7 +93,7 @@ void parser(const char fname[])
    LoadStaticChar(s3, 'D', true, "Load 'letter'");
    LoadStaticInt(s2, 'X', "Load 'state'");
    LoadStaticLong(s1, "Load 'bytes'");
-   EmitJump(l1, "Jump back to l1");
+   EmitBranchIfEqual(l1, "Branch back to l1");
    Emit("rts", "", "Return to caller");
    EmitExternInt("Wellerman", 42, "int Wellerman");
    EmitStaticLong(s1, 65536L, "bytes");

@@ -24,3 +24,4 @@ void StoreStaticInt(const int label, const int reg, const char comment[]);
 void EmitStaticChar(const int label, const int init, const char comment[]);
 void LoadStaticChar(const int label, const int reg, const bool signExtend, const char comment[]);
 void EmitJump(const int label, const char comment[]);
+void EmitBranchIfEqual(const int label, const char comment[]);
