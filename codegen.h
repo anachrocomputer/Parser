@@ -1,6 +1,8 @@
 /* codegen --- code generation routines                     2022-08-12 */
 /* Copyright (c) 2022 John Honniball. All rights reserved              */
 
+#define NOLABEL    (-1)
+
 void CodeGenInit(void);
 bool OpenAssemblerFile(const char fname[]);
 bool CloseAssemblerFile(void);
@@ -25,3 +27,4 @@ void EmitStaticChar(const int label, const int init, const char comment[]);
 void LoadStaticChar(const int label, const int reg, const bool signExtend, const char comment[]);
 void EmitJump(const int label, const char comment[]);
 void EmitBranchIfEqual(const int label, const char comment[]);
+void EmitBranchNotEqual(const int label, const char comment[]);

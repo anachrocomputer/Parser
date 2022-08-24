@@ -351,3 +351,15 @@ void EmitBranchIfEqual(const int label, const char comment[])
    
    Emit("lbeq", target, comment);
 }
+
+
+/* EmitBranchNotEqual --- emit a BNE to a label */
+
+void EmitBranchNotEqual(const int label, const char comment[])
+{
+   char target[8];
+   
+   snprintf(target, sizeof (target), "l%04d", label);
+   
+   Emit("lbne", target, comment);
+}
