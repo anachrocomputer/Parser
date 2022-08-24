@@ -38,27 +38,31 @@ char *NameOfTheShip(void)
    
    {
       33.3;
-      return;
+      return 999;
    }
    42;
    for;
    '*';
    if;
    0xff;
-   do;
-   {
+   do {
+      123L;
+      break;
+      5678;
+      continue;
       for;
       0377;
-   }
+   } while (3);
    switch;
    0;
+   return Soon;
    goto;
    Whale;
-   break;
+   for;
    Sailors;
-   continue;
-   Sugar;
    while;
+   Sugar;
+   goto;
 }
 
 int TonguingIsDone = 0;  // Cutting strips of blubber

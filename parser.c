@@ -14,11 +14,14 @@ void parse(const char fname[]);
 void parser(const char fname[]);
 int ParseDeclaration(struct Token *tok);
 void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, const int type);
-void ParseStatement(struct Token *tok, const int returnLabel);
+void ParseStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel);
 void ParseReturn(struct Token *tok, const int returnLabel);
-void ParseCompoundStatement(struct Token *tok, const int returnLabel);
+void ParseCompoundStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel);
 void ParseIf(struct Token *tok, const int returnLabel);
 void ParseExpression(struct Token *tok);
+void ParseDo(struct Token *tok, const int returnLabel);
+void ParseBreak(struct Token *tok, const int breakLabel);
+void ParseContinue(struct Token *tok, const int continueLabel);
 
 
 int main(const int argc, const char *argv[])
@@ -342,7 +345,7 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
    }
    
    while (tok->token != TCBRACE) {
-      ParseStatement(tok, returnLabel);
+      ParseStatement(tok, returnLabel, NOLABEL, NOLABEL);
    }
    
    EmitLabel(returnLabel);
@@ -356,7 +359,7 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
 
 /* ParseStatement --- parse a single statement */
 
-void ParseStatement(struct Token *tok, const int returnLabel)
+void ParseStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel)
 {
    switch (tok->token) {
    case TRETURN:
@@ -366,8 +369,7 @@ void ParseStatement(struct Token *tok, const int returnLabel)
       ParseIf(tok, returnLabel);
       break;
    case TDO:
-      printf("<do>\n");
-      GetToken(tok);
+      ParseDo(tok, returnLabel);
       break;
    case TFOR:
       printf("<for>\n");
@@ -382,19 +384,17 @@ void ParseStatement(struct Token *tok, const int returnLabel)
       GetToken(tok);
       break;
    case TCONTINUE:
-      printf("<continue>\n");
-      GetToken(tok);
+      ParseContinue(tok, continueLabel);
       break;
    case TBREAK:
-      printf("<break>\n");
-      GetToken(tok);
+      ParseBreak(tok, breakLabel);
       break;
    case TSWITCH:
       printf("<switch>\n");
       GetToken(tok);
       break;
    case TOBRACE:
-      ParseCompoundStatement(tok, returnLabel);
+      ParseCompoundStatement(tok, returnLabel, breakLabel, continueLabel);
       break;
    default:
       ParseExpression(tok);
@@ -412,6 +412,10 @@ void ParseReturn(struct Token *tok, const int returnLabel)
    printf("<return>\n");
    GetToken(tok);
 
+   if (tok->token != TSEMI) {
+      ParseExpression(tok);
+   }
+   
    EmitJump(returnLabel, "Jump to return");
 
    if (tok->token != TSEMI) {
@@ -422,14 +426,14 @@ void ParseReturn(struct Token *tok, const int returnLabel)
 
 /* ParseCompoundStatement --- parse a compound statement */
 
-void ParseCompoundStatement(struct Token *tok, const int returnLabel)
+void ParseCompoundStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel)
 {
    printf("<compound_statement>\n");
 
    GetToken(tok);
    
    while (tok->token != TCBRACE) {
-      ParseStatement(tok, returnLabel);
+      ParseStatement(tok, returnLabel, breakLabel, continueLabel);
    }
 }
 
@@ -464,8 +468,89 @@ void ParseExpression(struct Token *tok)
    }
    
    GetToken(tok);
+}
+
+
+/* ParseDo --- parse a 'do' statement */
+
+void ParseDo(struct Token *tok, const int returnLabel)
+{
+   const int dlabel = AllocLabel('d');
+   const int blabel = AllocLabel('b');
+   
+   printf("<do>\n");
+   EmitLabel(dlabel);
+
+   GetToken(tok);
+   ParseStatement(tok, returnLabel, blabel, dlabel);
+
+   if (tok->token != TWHILE) {
+      fprintf(stderr, "Expected 'while' after 'do'\n");
+   }
+   else {
+      GetToken(tok);
+      
+      if (tok->token == TOPAREN) {
+      
+         GetToken(tok);
+         ParseExpression(tok);
+         
+         Emit("cmpd", "#0", "do-while test");
+         EmitBranchNotEqual(dlabel, "do-while branch");
+
+         if (tok->token == TCPAREN) {
+            GetToken(tok);
+         }
+         else {
+            fprintf(stderr, "Expected ')' after 'while'\n");
+         }
+      }
+      else {
+         fprintf(stderr, "Expected '(' after 'while'\n");
+      }
+   }
+   
+   EmitLabel(blabel);
+}
+
+
+/* ParseBreak --- parse a 'break' statement and check that it's valid */
+
+void ParseBreak(struct Token *tok, const int breakLabel)
+{
+   printf("<break>\n");
+   
+   if (breakLabel == NOLABEL) {
+      fprintf(stderr, "'break' not inside a loop or 'switch'\n");
+   }
+   else {
+      EmitJump(breakLabel, "break");
+   }
+   
+   GetToken(tok);
    
    if (tok->token != TSEMI) {
-      fprintf(stderr, "Missing semicolon at end of expression\n");
+      fprintf(stderr, "Expected ';' after 'break'\n");
+   }
+}
+
+
+/* ParseContinue --- parse a 'continue' statement and check that it's valid */
+
+void ParseContinue(struct Token *tok, const int continueLabel)
+{
+   printf("<continue>\n");
+   
+   if (continueLabel == NOLABEL) {
+      fprintf(stderr, "'continue' not inside a loop\n");
+   }
+   else {
+      EmitJump(continueLabel, "continue");
+   }
+   
+   GetToken(tok);
+   
+   if (tok->token != TSEMI) {
+      fprintf(stderr, "Expected ';' after 'continue'\n");
    }
 }
