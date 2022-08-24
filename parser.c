@@ -452,7 +452,17 @@ void ParseIf(struct Token *tok, const int returnLabel)
 void ParseExpression(struct Token *tok)
 {
    printf("<expression>\n");
-   Emit("nop", "", "<expression>");
+   
+   if (tok->token == TINTLIT) {
+      LoadIntConstant(tok->iValue, 'D', tok->str);
+   }
+   else if (tok->token == TID) {
+      LoadExternInt(tok->str, 'D', "Load int");
+   }
+   else {
+      Emit("nop", "", "<expression>");
+   }
+   
    GetToken(tok);
    
    if (tok->token != TSEMI) {

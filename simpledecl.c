@@ -37,6 +37,7 @@ char *NameOfTheShip(void)
    double knots;
    
    {
+      33.3;
       return;
    }
    42;
