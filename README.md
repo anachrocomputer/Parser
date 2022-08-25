@@ -1,9 +1,9 @@
 # Simple Lexical Analyser and Parser #
 
 Currently able to tokenise most of the C language and parse very limited
-external declarations.
+external declarations, functions, and statements.
 
-See 'simpledecl.c' for an example file that can be parsed.
+See 'simpledecl.c' and 'simplectrl.c' for example files that can be parsed.
 
 Use the '-T' command-line option to enable token-level debugging output.
 
