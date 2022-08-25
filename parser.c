@@ -79,35 +79,11 @@ void parse(const char fname[])
 void parser(const char fname[])
 {
    struct Token tok;
-   const int l1 = AllocLabel('L');
-   const int l2 = AllocLabel('L');
-   const int s1 = AllocLabel('L');
-   const int s2 = AllocLabel('I');
-   const int s3 = AllocLabel('C');
 
    GetToken(&tok);
 
    while (ParseDeclaration(&tok) != EOF)
       ;
-      
-   EmitLabel(l1);
-   Emit("nop", "", "Do nothing");
-   EmitJump(l2, "Jump forward to l2");
-   Emit("nop", "", "Do nothing");
-   EmitLabel(l2);
-   LoadIntConstant(42, 'D', "Load constant 42");
-   StoreStaticInt(s2, 'D', "Store 'state'");
-   StoreExternInt("Wellerman", 'D', "Store 'Wellerman'");
-   LoadExternInt("Wellerman", 'D', "Load 'Welleman'");
-   LoadStaticChar(s3, 'D', true, "Load 'letter'");
-   LoadStaticInt(s2, 'X', "Load 'state'");
-   LoadStaticLong(s1, "Load 'bytes'");
-   EmitBranchIfEqual(l1, "Branch back to l1");
-   Emit("rts", "", "Return to caller");
-   EmitExternInt("Wellerman", 42, "int Wellerman");
-   EmitStaticLong(s1, 65536L, "bytes");
-   EmitStaticInt(s2, 42, "state");
-   EmitStaticChar(s3, 'A', "letter");
 }
 
 
