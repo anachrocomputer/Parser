@@ -36,33 +36,7 @@ char *NameOfTheShip(void)
    float heading;
    double knots;
    
-   {
-      33.3;
-      return 999;
-   }
-   42;
-   for;
-   '*';
-   if;
-   0xff;
-   do {
-      123L;
-      break;
-      5678;
-      continue;
-      for;
-      0377;
-   } while (3);
-   switch;
-   0;
-   return Soon;
-   goto sea;
-   Whale;
-   for;
-   Sailors;
-   while;
-   Sugar;
-   goto harbour;
+   return 42;
 }
 
 int TonguingIsDone = 0;  // Cutting strips of blubber
