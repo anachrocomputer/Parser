@@ -91,7 +91,7 @@ void EmitFunctionLabel(const char name[])
 
 void EmitStaticLong(const int label, const long int init, const char comment[])
 {
-   fprintf(Asm, "l%04d   fqb  %ld     ; %s\n", label, init, comment);
+   fprintf(Asm, "l%04d   fqb  %ld       ; static long int %s = %ld\n", label, init, comment, init);
 }
 
 
@@ -111,7 +111,41 @@ void LoadStaticLong(const int label, const char comment[])
 
 void EmitStaticInt(const int label, const int init, const char comment[])
 {
-   fprintf(Asm, "l%04d   fdb  %d     ; %s\n", label, init, comment);
+   fprintf(Asm, "l%04d   fdb  %d               ; static int %s = %d\n", label, init, comment, init);
+}
+
+
+/* EmitStaticFloat --- emit declaration for a local static float variable */
+
+void EmitStaticFloat(const int label, const float init, const char comment[])
+{
+   int b1, b2, b3, b4;
+   
+   b1 = 0;  // TODO: generate 32-bit IEEE-754 'float' here
+   b2 = 0;
+   b3 = 0;
+   b4 = 0;
+
+   fprintf(Asm, "l%04d   fcb  %d,%d,%d,%d         ; static float %s = %g\n", label, b1, b2, b3, b4, comment, init);
+}
+
+
+/* EmitStaticDouble --- emit declaration for a local static double variable */
+
+void EmitStaticDouble(const int label, const double init, const char comment[])
+{
+   int b1, b2, b3, b4, b5, b6, b7, b8;
+   
+   b1 = 0;  // TODO: generate 64-bit IEEE-754 'double' here
+   b2 = 0;
+   b3 = 0;
+   b4 = 0;
+   b5 = 0;
+   b6 = 0;
+   b7 = 0;
+   b8 = 0;
+
+   fprintf(Asm, "l%04d   fcb  %d,%d,%d,%d,%d,%d,%d,%d ; static double %s = %g\n", label, b1, b2, b3, b4, b5, b6, b7, b8, comment, init);
 }
 
 
@@ -302,7 +336,7 @@ void StoreStaticInt(const int label, const int reg, const char comment[])
 
 void EmitStaticChar(const int label, const int init, const char comment[])
 {
-   fprintf(Asm, "l%04d   fcb  %d     ; %s\n", label, init, comment);
+   fprintf(Asm, "l%04d   fcb  %d               ; static char %s = %d\n", label, init, comment, init);
 }
 
 

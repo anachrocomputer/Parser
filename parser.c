@@ -107,6 +107,7 @@ int ParseDeclaration(struct Token *tok)
    case TEOF:
       return (EOF);
    case TSEMI:
+      GetToken(tok);
       break;
    case TVOID:
    case TINT:
@@ -133,6 +134,7 @@ int ParseDeclaration(struct Token *tok)
       switch (tok->token) {
       case TASSIGN:  // Scalar initialiser
          GetToken(tok);
+
          if (pLevel == 0) {
             switch (type) {
             case TCHAR:
@@ -157,21 +159,20 @@ int ParseDeclaration(struct Token *tok)
             printf("Initialised pointer '%s' '%s'\n", name, tok->str);
             EmitExternPointer(name, tok->iValue, "pointer");
          }
+         
          GetToken(tok);
+         ParseSemi(tok, "in declaration");
          break;
       case TOSQBRK:  // Array
          break;
       case TOPAREN:  // Function
          GetToken(tok);
          
-         if (tok->token == TVOID) {
+         if (tok->token == TVOID) { // Only recognise 'void' functions as yet
             GetToken(tok);
          }
          
-         if (tok->token != TCPAREN) {
-            fprintf(stderr, "Malformed function declaration");
-         }
-         else {
+         if (tok->token == TCPAREN) {
             if (pLevel == 0) {
                switch (type) {
                case TVOID:
@@ -195,12 +196,18 @@ int ParseDeclaration(struct Token *tok)
                printf("Function '%s()' returning pointer\n", name);
             }
          }
+         else {
+            fprintf(stderr, "Malformed function declaration");
+         }
 
          GetToken(tok);
 
          if (tok->token == TOBRACE) {
             printf("<function_definition>\n");
             ParseFunctionBody(tok, name, pLevel, type);
+         }
+         else {
+            ParseSemi(tok, "in function declaration");
          }
 
          break;
@@ -241,12 +248,6 @@ int ParseDeclaration(struct Token *tok)
       break;
    }
 
-   if (!((tok->token == TSEMI) || (tok->token == TCBRACE))) {
-      fprintf(stderr, "Missing semicolon or close curly bracket in declaration\n");
-   }
-   
-   GetToken(tok);
-   
    return (tok->token);
 }
 
@@ -258,17 +259,30 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
    int autoSize = 0;
    const int returnLabel = AllocLabel('R');
    
-   EmitFunctionLabel(name);
-   Emit("pshs", "u", "Save old frame pointer");
-   Emit("tfr", "s,u", "Make new frame pointer");
-   
    GetToken(tok);
    
+   // Function's local variables
    while ((tok->token == TINT) || (tok->token == TCHAR) ||
-          (tok->token == TFLOAT) || (tok->token == TDOUBLE)) {
+          (tok->token == TFLOAT) || (tok->token == TDOUBLE) ||
+          (tok->token == TSTATIC) || (tok->token == TAUTO) ||
+          (tok->token == TREGISTER)) {
       char name[256];
-      int type = tok->token;
+      int type;
       int pLevel = 0;
+      bool isStatic = false;
+      
+      if (tok->token == TSTATIC) {           // Accept 'static' storage class
+         GetToken(tok);
+         isStatic = true;
+      }
+      else if (tok->token == TAUTO) {        // Ignore 'auto' storage class
+         GetToken(tok);
+      }
+      else if (tok->token == TREGISTER) {    // Ignore 'register' storage class
+         GetToken(tok);
+      }
+      
+      type = tok->token;   // Yikes, we're assuming that the next token is a valid type!
       
       GetToken(tok);
 
@@ -279,29 +293,59 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
          
       if (tok->token == TID) {
          strcpy(name, tok->str);
-         if (pLevel == 0) {
-            switch (type) {
-            case TCHAR:
-               printf("Local 'char' variable '%s'\n", name);
-               autoSize += 2;
-               break;
-            case TINT:
-               printf("Local 'int' variable '%s'\n", name);
-               autoSize += 1;
-               break;
-            case TFLOAT:
-               printf("Local 'float' variable '%s'\n", name);
-               autoSize += 4;
-               break;
-            case TDOUBLE:
-               printf("Local 'double' variable '%s'\n", name);
-               autoSize += 8;
-               break;
+         if (isStatic) {
+            const int slabel = AllocLabel('S');
+            
+            if (pLevel == 0) {
+               switch (type) {
+               case TCHAR:
+                  printf("Static 'char' variable '%s'\n", name);
+                  EmitStaticChar(slabel, 0, name);
+                  break;
+               case TINT:
+                  printf("Static 'int' variable '%s'\n", name);
+                  EmitStaticInt(slabel, 0, name);
+                  break;
+               case TFLOAT:
+                  printf("Static 'float' variable '%s'\n", name);
+                  EmitStaticFloat(slabel, 0.0f, name);
+                  break;
+               case TDOUBLE:
+                  printf("Static 'double' variable '%s'\n", name);
+                  EmitStaticDouble(slabel, 0.0, name);
+                  break;
+               }
+            }
+            else {
+               printf("Static pointer variable '%s'\n", name);
+               EmitStaticInt(slabel, 0, name);
             }
          }
          else {
-            printf("Local pointer variable '%s'\n", name);
+            if (pLevel == 0) {
+               switch (type) {
+               case TCHAR:
+                  printf("Local 'char' variable '%s'\n", name);
+                  autoSize += 2;
+                  break;
+               case TINT:
+                  printf("Local 'int' variable '%s'\n", name);
+                  autoSize += 1;
+                  break;
+               case TFLOAT:
+                  printf("Local 'float' variable '%s'\n", name);
+                  autoSize += 4;
+                  break;
+               case TDOUBLE:
+                  printf("Local 'double' variable '%s'\n", name);
+                  autoSize += 8;
+                  break;
+               }
+            }
+            else {
+               printf("Local pointer variable '%s'\n", name);
                autoSize += 2;
+            }
          }
       }
       else {
@@ -317,7 +361,13 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
       GetToken(tok);
    }
    
+   // Function entry sequence
+   EmitFunctionLabel(name);
+   Emit("pshs", "u", "Save old frame pointer");
+   Emit("tfr", "s,u", "Make new frame pointer");
+   
    printf("Size of 'auto' variables: %d\n", autoSize);
+
    if (autoSize != 0) {
       char frame[32];
       
@@ -325,10 +375,14 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
       Emit("leas", frame, "Allocate stack frame");
    }
    
+   // Function's executable code
    while (tok->token != TCBRACE) {
       ParseStatement(tok, returnLabel, NOLABEL, NOLABEL);
    }
    
+   GetToken(tok);
+   
+   // Function exit sequence
    EmitLabel(returnLabel);
    Emit("tfr", "u,s", "Deallocate stack frame");
    Emit("puls", "u", "Restore frame pointer");

@@ -31,10 +31,15 @@ char *NameOfTheShip();
 char *NameOfTheShip(void)
 {
    int tea;
+   static char *namePtr;
    char *billy;
    char captainsInitial;
-   float heading;
-   double knots;
+   static char bosunsInitial;
+   register float heading;
+   static float buoy;
+   auto double knots;
+   static int seaState;
+   static double funnel;
    
    return 42;
 }
