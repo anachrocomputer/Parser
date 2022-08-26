@@ -17,12 +17,16 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
 void ParseStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel);
 void ParseReturn(struct Token *tok, const int returnLabel);
 void ParseCompoundStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel);
-void ParseIf(struct Token *tok, const int returnLabel);
+void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel);
 void ParseExpression(struct Token *tok);
 void ParseDo(struct Token *tok, const int returnLabel);
 void ParseBreak(struct Token *tok, const int breakLabel);
 void ParseContinue(struct Token *tok, const int continueLabel);
 void ParseGoto(struct Token *tok);
+void ParseWhile(struct Token *tok, const int returnLabel);
+void ParseFor(struct Token *tok, const int returnLabel);
+void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLabel);
+void ParseSemi(struct Token *tok, const char location[]);
 
 
 int main(const int argc, const char *argv[])
@@ -338,23 +342,23 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
 
 void ParseStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel)
 {
+   printf("<statement> ");
+   
    switch (tok->token) {
    case TRETURN:
       ParseReturn(tok, returnLabel);
       break;
    case TIF:
-      ParseIf(tok, returnLabel);
+      ParseIf(tok, returnLabel, breakLabel, continueLabel);
       break;
    case TDO:
       ParseDo(tok, returnLabel);
       break;
    case TFOR:
-      printf("<for>\n");
-      GetToken(tok);
+      ParseFor(tok, returnLabel);
       break;
    case TWHILE:
-      printf("<while>\n");
-      GetToken(tok);
+      ParseWhile(tok, returnLabel);
       break;
    case TGOTO:
       ParseGoto(tok);
@@ -366,18 +370,16 @@ void ParseStatement(struct Token *tok, const int returnLabel, const int breakLab
       ParseBreak(tok, breakLabel);
       break;
    case TSWITCH:
-      printf("<switch>\n");
-      GetToken(tok);
+      ParseSwitch(tok, returnLabel, continueLabel);
       break;
    case TOBRACE:
       ParseCompoundStatement(tok, returnLabel, breakLabel, continueLabel);
       break;
    default:
       ParseExpression(tok);
+      ParseSemi(tok, "after expression");
       break;
    }
-   
-   GetToken(tok);
 }
 
 
@@ -385,18 +387,19 @@ void ParseStatement(struct Token *tok, const int returnLabel, const int breakLab
 
 void ParseReturn(struct Token *tok, const int returnLabel)
 {
-   printf("<return>\n");
+   printf("<return>");
    GetToken(tok);
 
-   if (tok->token != TSEMI) {
+   if (tok->token == TSEMI) {
+      printf("\n");
+   }
+   else {
       ParseExpression(tok);
    }
    
    EmitJump(returnLabel, "Jump to return");
 
-   if (tok->token != TSEMI) {
-      fprintf(stderr, "Missing semicolon at end of 'return'\n");
-   }
+   ParseSemi(tok, "at end of 'return'");
 }
 
 
@@ -411,19 +414,19 @@ void ParseCompoundStatement(struct Token *tok, const int returnLabel, const int 
    while (tok->token != TCBRACE) {
       ParseStatement(tok, returnLabel, breakLabel, continueLabel);
    }
+
+   GetToken(tok); /* Skip the closing curly bracket */
 }
 
 
 /* ParseIf --- parse an 'if' statement */
 
-void ParseIf(struct Token *tok, const int returnLabel)
+void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel)
 {
    printf("<if>\n");
    GetToken(tok);
    
-   if (tok->token != TSEMI) {
-      fprintf(stderr, "Missing semicolon at end of 'if'\n");
-   }
+   ParseSemi(tok, "at end of 'if'");
 }
 
 
@@ -465,6 +468,7 @@ void ParseDo(struct Token *tok, const int returnLabel)
       fprintf(stderr, "Expected 'while' after 'do'\n");
    }
    else {
+      printf("<while>");
       GetToken(tok);
       
       if (tok->token == TOPAREN) {
@@ -478,13 +482,14 @@ void ParseDo(struct Token *tok, const int returnLabel)
 
          if (tok->token == TCPAREN) {
             GetToken(tok);
+            ParseSemi(tok, "after 'do'-'while'");
          }
          else {
-            fprintf(stderr, "Expected ')' after 'while'\n");
+            fprintf(stderr, "Expected ')' after 'do'-'while'\n");
          }
       }
       else {
-         fprintf(stderr, "Expected '(' after 'while'\n");
+         fprintf(stderr, "Expected '(' after 'do'-'while'\n");
       }
    }
    
@@ -497,6 +502,7 @@ void ParseDo(struct Token *tok, const int returnLabel)
 void ParseBreak(struct Token *tok, const int breakLabel)
 {
    printf("<break>\n");
+   GetToken(tok);
    
    if (breakLabel == NOLABEL) {
       fprintf(stderr, "'break' not inside a loop or 'switch'\n");
@@ -505,11 +511,7 @@ void ParseBreak(struct Token *tok, const int breakLabel)
       EmitJump(breakLabel, "break");
    }
    
-   GetToken(tok);
-   
-   if (tok->token != TSEMI) {
-      fprintf(stderr, "Expected ';' after 'break'\n");
-   }
+   ParseSemi(tok, "after 'break'");
 }
 
 
@@ -518,6 +520,7 @@ void ParseBreak(struct Token *tok, const int breakLabel)
 void ParseContinue(struct Token *tok, const int continueLabel)
 {
    printf("<continue>\n");
+   GetToken(tok);
    
    if (continueLabel == NOLABEL) {
       fprintf(stderr, "'continue' not inside a loop\n");
@@ -526,11 +529,7 @@ void ParseContinue(struct Token *tok, const int continueLabel)
       EmitJump(continueLabel, "continue");
    }
    
-   GetToken(tok);
-   
-   if (tok->token != TSEMI) {
-      fprintf(stderr, "Expected ';' after 'continue'\n");
-   }
+   ParseSemi(tok, "after 'continue'");
 }
 
 
@@ -542,14 +541,54 @@ void ParseGoto(struct Token *tok)
    GetToken(tok);
    
    if (tok->token == TID) {
-      GetToken(tok);
+      GetToken(tok); /* Ignore target label */
       
-      if (tok->token != TSEMI) {
-         fprintf(stderr, "Expected ';' after 'goto'\n");
-      }
+      ParseSemi(tok, "after 'goto'");
    }
    else {
       fprintf(stderr, "Expected label name after 'goto'\n");
    }
 }
 
+
+/* ParseWhile --- parse a 'while' statement */
+
+void ParseWhile(struct Token *tok, const int returnLabel)
+{
+   printf("<while>\n");
+   GetToken(tok);
+   ParseSemi(tok, "after 'while'");
+}
+
+
+/* ParseFor --- parse a 'for' statement */
+
+void ParseFor(struct Token *tok, const int returnLabel)
+{
+   printf("<for>\n");
+   GetToken(tok);
+   ParseSemi(tok, "after 'for'");
+}
+
+
+/* ParseSwitch --- parse a 'switch' statement */
+
+void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLabel)
+{
+   printf("<switch>\n");
+   GetToken(tok);
+   ParseSemi(tok, "after 'switch'");
+}
+
+
+/* ParseSemi --- parse a semicolon */
+
+void ParseSemi(struct Token *tok, const char location[])
+{
+   if (tok->token == TSEMI) {
+      GetToken(tok);
+   }
+   else {
+      fprintf(stderr, "Missing semicolon %s\n", location);
+   }
+}

@@ -12,10 +12,10 @@ char *NameOfTheShip(void)
    double knots;
    
    {
-      33.3;
+      33.3; // 'double' constant will generate a NOP in the assembly language
       return 999;
    }
-   42;
+   42;   // The only <expression> we know so far is an integer constant or an identifier
    for;
    '*';
    if;
@@ -34,10 +34,11 @@ char *NameOfTheShip(void)
          return Sugar;
       } while (0);
       0377;
-   } while (3);
+   } while (Rum);
    switch;
    0;
    return Rum;
+   do Tea; while (1);
    goto sea;
    Tea;
    while;
