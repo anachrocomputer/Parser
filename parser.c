@@ -387,7 +387,7 @@ void ParseStatement(struct Token *tok, const int returnLabel, const int breakLab
 
 void ParseReturn(struct Token *tok, const int returnLabel)
 {
-   printf("<return>");
+   printf("<return> ");
    GetToken(tok);
 
    if (tok->token == TSEMI) {
@@ -468,7 +468,7 @@ void ParseDo(struct Token *tok, const int returnLabel)
       fprintf(stderr, "Expected 'while' after 'do'\n");
    }
    else {
-      printf("<while>");
+      printf("<while> ");
       GetToken(tok);
       
       if (tok->token == TOPAREN) {
@@ -558,7 +558,7 @@ void ParseWhile(struct Token *tok, const int returnLabel)
    const int blabel = AllocLabel('b');
    const int clabel = AllocLabel('c');
    
-   printf("<while>\n");
+   printf("<while> ");
    GetToken(tok);
    
    if (tok->token == TOPAREN) {
@@ -603,9 +603,30 @@ void ParseFor(struct Token *tok, const int returnLabel)
 
 void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLabel)
 {
-   printf("<switch>\n");
+   const int blabel = AllocLabel('b');
+
+   printf("<switch> ");
    GetToken(tok);
-   ParseSemi(tok, "after 'switch'");
+
+   if (tok->token == TOPAREN) {
+      GetToken(tok);
+      
+      ParseExpression(tok);
+      
+      if (tok->token == TCPAREN) {
+         GetToken(tok);
+         
+         ParseCompoundStatement(tok, returnLabel, blabel, continueLabel); // TODO: handle 'case' and 'default'
+      }
+      else {
+         fprintf(stderr, "Expected ')' after 'switch'\n");
+      }
+   }
+   else {
+      fprintf(stderr, "Expected '(' after 'switch'\n");
+   }
+
+   EmitLabel(blabel);
 }
 
 

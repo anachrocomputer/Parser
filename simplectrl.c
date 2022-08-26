@@ -35,7 +35,13 @@ char *NameOfTheShip(void)
       } while (0);
       0377;
    } while (Rum);
-   switch;
+   switch (Sugar) {  // No 'case' labels yet, but 'break' works
+      456;
+      break;
+      789;
+      return 0x1000;
+      0177;
+   }
    0;
    return Rum;
    do Tea; while (1);
