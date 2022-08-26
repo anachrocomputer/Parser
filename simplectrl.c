@@ -41,8 +41,17 @@ char *NameOfTheShip(void)
    do Tea; while (1);
    goto sea;
    Tea;
-   while;
+   while (Rum) Tea;
    Sugar;
+   while (Tea) {
+      3456;
+      break;
+      6789;
+      continue;
+      0x9abc;
+      return 0377;
+   }
+   Rum;
    goto harbour;
 }
 

@@ -555,9 +555,37 @@ void ParseGoto(struct Token *tok)
 
 void ParseWhile(struct Token *tok, const int returnLabel)
 {
+   const int blabel = AllocLabel('b');
+   const int clabel = AllocLabel('c');
+   
    printf("<while>\n");
    GetToken(tok);
-   ParseSemi(tok, "after 'while'");
+   
+   if (tok->token == TOPAREN) {
+      EmitLabel(clabel);
+
+      GetToken(tok);
+      
+      ParseExpression(tok);
+      
+      Emit("cmpd", "#0", "while test");
+      EmitBranchIfEqual(blabel, "while branch");
+
+      if (tok->token == TCPAREN) {
+         GetToken(tok);
+         
+         ParseStatement(tok, returnLabel, blabel, clabel);
+         EmitJump(clabel, "while loop");
+      }
+      else {
+         fprintf(stderr, "Expected ')' after 'while'\n");
+      }
+   }
+   else {
+      fprintf(stderr, "Expected '(' after 'while'\n");
+   }
+
+   EmitLabel(blabel);
 }
 
 
