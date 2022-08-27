@@ -7,6 +7,7 @@
 
 #include "codegen.h"
 #include "lexical.h"
+#include "symtab.h"
 
 
 void initialise(void);
@@ -58,6 +59,7 @@ void initialise(void)
 {
    CodeGenInit();
    LexicalInit();
+   SymTabInit();
 }
 
 
@@ -135,6 +137,8 @@ int ParseDeclaration(struct Token *tok)
       case TASSIGN:  // Scalar initialiser
          GetToken(tok);
 
+         AddExternSymbol(name, type, pLevel);
+         
          if (pLevel == 0) {
             switch (type) {
             case TCHAR:
@@ -212,6 +216,8 @@ int ParseDeclaration(struct Token *tok)
 
          break;
       case TSEMI:    // Uninitialised scalar
+         AddExternSymbol(name, type, pLevel);
+
          if (pLevel == 0) {
             switch (type) {
             case TCHAR:
