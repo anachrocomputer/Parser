@@ -35,11 +35,15 @@ char *NameOfTheShip(void)
       } while (0);
       0377;
    } while (Rum);
-   switch (Sugar) {  // No 'case' labels yet, but 'break' works
+   switch (Sugar) {  // No functioning jump table yet, but 'case' and 'default' generate labels
       456;
       break;
+   case 42:
       789;
+   case 84:
+   case 128:
       return 0x1000;
+   default:
       0177;
    }
    0;

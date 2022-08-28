@@ -685,6 +685,8 @@ void ParseFor(struct Token *tok, const int returnLabel)
 void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLabel)
 {
    const int blabel = AllocLabel('b');
+   int dlabel = blabel;
+   int clabel;
 
    printf("<switch> ");
    GetToken(tok);
@@ -697,7 +699,61 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
       if (tok->token == TCPAREN) {
          GetToken(tok);
          
-         ParseCompoundStatement(tok, returnLabel, blabel, continueLabel); // TODO: handle 'case' and 'default'
+         printf("<labelled_compound_statement>\n");
+
+         if (tok->token == TOBRACE) {
+            GetToken(tok);
+            
+            while (tok->token != TCBRACE) {
+               if (tok->token == TCASE) {
+                  GetToken(tok);
+
+                  if (tok->token == TINTLIT) {
+                     printf("<case> %d: ", tok->iValue);
+                     GetToken(tok);
+
+                     if (tok->token == TCOLON) {
+                        GetToken(tok);
+                        clabel = AllocLabel('C');  // TODO: check case numbers are unique
+                        EmitLabel(clabel);         // TODO: save label IDs in array
+                     }
+                     else {
+                        fprintf(stderr, "Expected ':' after 'case'\n");
+                     }
+                  }
+                  else {
+                     fprintf(stderr, "Expected integer constant after 'case'\n");
+                  }
+               }
+               else if (tok->token == TDEFAULT) {
+                  printf("<default> ");
+                  GetToken(tok);
+                  
+                  if (tok->token == TCOLON) {
+                     if (dlabel == blabel) {
+                        dlabel = AllocLabel('D');
+                        EmitLabel(dlabel);
+                     }
+                     else {
+                        fprintf(stderr, "Multiple 'default:' labels in 'switch'\n");
+                     }
+                     
+                     GetToken(tok);
+                  }
+                  else {
+                     fprintf(stderr, "Expected ':' after 'default'\n");
+                  }
+               }
+               else {
+                  ParseStatement(tok, returnLabel, blabel, continueLabel);
+               }
+            }
+
+            GetToken(tok); /* Skip the closing curly bracket */
+         }
+         else {
+            fprintf(stderr, "Expected '{' after 'switch'\n");
+         }
       }
       else {
          fprintf(stderr, "Expected ')' after 'switch'\n");
