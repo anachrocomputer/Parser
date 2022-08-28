@@ -683,7 +683,7 @@ void ParseWhile(struct Token *tok, const int returnLabel)
       ParseExpression(tok);
       
       Emit("cmpd", "#0", "while test");
-      EmitBranchIfEqual(blabel, "while branch");
+      EmitBranchIfEqual(blabel, "while exit");
 
       if (tok->token == TCPAREN) {
          GetToken(tok);
@@ -707,9 +707,53 @@ void ParseWhile(struct Token *tok, const int returnLabel)
 
 void ParseFor(struct Token *tok, const int returnLabel)
 {
-   printf("<for>\n");
+   const int blabel = AllocLabel('b');
+   const int clabel = AllocLabel('c');
+   const int slabel = AllocLabel('s');
+   const int tlabel = AllocLabel('t');
+
+   printf("<for> ");
    GetToken(tok);
-   ParseSemi(tok, "after 'for'");
+
+   if (tok->token == TOPAREN) {
+      GetToken(tok);
+      
+      ParseExpression(tok);      // Initialisation
+      
+      ParseSemi(tok, "in 'for'");
+      
+      EmitLabel(tlabel);
+
+      ParseExpression(tok);      // Test
+
+      Emit("cmpd", "#0", "for test");
+      EmitBranchIfEqual(blabel, "for exit");
+      EmitJump(slabel, "for jump to statement");
+
+      ParseSemi(tok, "in 'for'");
+
+      EmitLabel(clabel);
+
+      ParseExpression(tok);      // Increment
+
+      EmitJump(tlabel, "for jump back to test");
+
+      if (tok->token == TCPAREN) {
+         GetToken(tok);
+         
+         EmitLabel(slabel);
+         ParseStatement(tok, returnLabel, blabel, clabel);
+         EmitJump(clabel, "for loop");
+      }
+      else {
+         fprintf(stderr, "Expected ')' after 'for'\n");
+      }
+   }
+   else {
+      fprintf(stderr, "Expected '(' after 'for'\n");
+   }
+
+   EmitLabel(blabel);
 }
 
 

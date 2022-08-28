@@ -16,8 +16,19 @@ char *NameOfTheShip(void)
       return 999;
    }
    42;   // The only <expression> we know so far is an integer constant or an identifier
-   for;
+   for (4; Tea; Tea++)  // for-loops work but cannot have empty expressions yet
+      Rum;
    '*';
+   for (40; Rum; Rum--) {
+      if (Tea)
+         break;
+      400;
+      if (Sugar)
+         continue;
+      4000;
+      if (Whale)
+         return (17);
+   }
    if (0) return;
    0xff;
    do {
@@ -68,6 +79,13 @@ char *NameOfTheShip(void)
       789;
    }
    Whale;
+   for (444; Whale; Whale--)
+      for (555; Tea; Tea++) {
+         if (Sugar)
+            break;
+         if (Rum)
+            continue;
+      }
    goto harbour;
 }
 
