@@ -51,8 +51,8 @@ char *NameOfTheShip(void)
       break;
    case 42:
       789;     // Fall through
-   case 84:
-   case 128:
+   case (42 * 2) + 1:   // Simple constant integer expressions are allowed
+   case 64 * 2:
       return 0x1000;
    default:
       0177;

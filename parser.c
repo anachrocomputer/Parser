@@ -29,6 +29,7 @@ void ParseWhile(struct Token *tok, const int returnLabel);
 void ParseFor(struct Token *tok, const int returnLabel);
 void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLabel);
 void ParseSemi(struct Token *tok, const char location[]);
+bool ParseConstIntExpr(struct Token *tok, int *value, int *type);
 
 
 int main(const int argc, const char *argv[])
@@ -765,6 +766,8 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
    const int jlabel = AllocLabel('J'); // Label for jump over labelled_compound_statement to compare/branch chain
    int dlabel = blabel;    // Default target for 'default' label is same as 'break'
    int clabel;             // Label for each case
+   int iValue = 0;
+   int iType = 0;
    int nCases = 0;
    int i;
    struct {
@@ -794,10 +797,9 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
                if (tok->token == TCASE) {
                   GetToken(tok);
 
-                  if (tok->token == TINTLIT) {
-                     printf("<case> %d: ", tok->iValue);
-                     cases[nCases].match = tok->iValue;
-                     GetToken(tok);
+                  if (ParseConstIntExpr(tok, &iValue, &iType)) {
+                     printf("<case> %d: ", iValue);
+                     cases[nCases].match = iValue;
 
                      if (tok->token == TCOLON) {
                         GetToken(tok);
@@ -884,3 +886,62 @@ void ParseSemi(struct Token *tok, const char location[])
       fprintf(stderr, "Missing semicolon %s\n", location);
    }
 }
+
+
+/* ParseConstIntExpr --- parse a constant integer expression, e.g. after a 'case' */
+
+bool ParseConstIntExpr(struct Token *tok, int *value, int *type)
+{
+   bool ret = true;
+   
+   if (tok->token == TOPAREN) {
+      GetToken(tok);
+      ret = ParseConstIntExpr(tok, value, type);
+      if (tok->token == TCPAREN) {
+         GetToken(tok);
+      }
+      else {
+         fprintf(stdout, "Expected ')' in constant expression\n");
+         ret = false;
+      }
+   }
+   else if (tok->token == TINTLIT) {
+      *value = tok->iValue;
+      *type = TINT;
+      GetToken(tok);
+   }
+   else {
+      ret = false;
+   }
+      
+   if ((tok->token == TPLUS) || (tok->token == TMINUS) ||
+       (tok->token == TSTAR) || (tok->token == TDIV) ||
+       (tok->token == TMOD)) {
+      const int op = tok->token;
+      int rhsValue;
+      int rhsType;
+      
+      GetToken(tok);
+      ret = ParseConstIntExpr(tok, &rhsValue, &rhsType);
+      switch (op) {
+      case TPLUS:
+         *value += rhsValue;
+         break;
+      case TMINUS:
+         *value -= rhsValue;
+         break;
+      case TSTAR: 
+         *value *= rhsValue;
+         break;
+      case TDIV:
+         *value /= rhsValue;
+         break;
+      case TMOD:
+         *value %= rhsValue;
+         break;
+      }
+   }
+   
+   return (ret);
+}
+
