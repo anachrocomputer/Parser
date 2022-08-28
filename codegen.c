@@ -397,3 +397,19 @@ void EmitBranchNotEqual(const int label, const char comment[])
    
    Emit("lbne", target, comment);
 }
+
+
+/* EmitIncExternInt --- emit an INC for an extern int variable */
+
+void EmitIncExternInt(const char name[], const int amount)
+{
+   char target[30];
+   char op[30];
+
+   snprintf(target, sizeof (target), "%c%s", NAME_PREFIX, name);
+   snprintf(op, sizeof (op), "%d,x", amount);
+
+   Emit("ldx", target, "inc");
+   Emit("leax", op, "inc");
+   Emit("stx", target, "inc");
+}

@@ -23,7 +23,7 @@ char *NameOfTheShip(void)
    do {
       123L;
       break;
-      5678;
+      (5678);  // Expressions may be bracketed
       if (Tea) continue;
       do {
          0x7FFF;
@@ -31,10 +31,10 @@ char *NameOfTheShip(void)
          1000;
          continue;
          999;
-         return Sugar;
+         return (Sugar);
       } while (0);
       0377;
-   } while (Rum);
+   } while (Rum--); // Variables may be incremented or decremented
    switch (Sugar) {
       456;     // Unreachable code
       break;
@@ -50,9 +50,9 @@ char *NameOfTheShip(void)
    return Rum;
    do Tea; while (1);
    goto sea;
-   Tea;
+   Tea++;
    while (Rum) Tea;
-   Sugar;
+   Sugar--;
    while (Tea) {
       3456;
       break;
@@ -64,7 +64,7 @@ char *NameOfTheShip(void)
    Rum;
    if (Tea) {
       456;
-      return 0xaaaa;
+      return (0xaaaa);
       789;
    }
    Whale;

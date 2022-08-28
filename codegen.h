@@ -30,3 +30,4 @@ void LoadStaticChar(const int label, const int reg, const bool signExtend, const
 void EmitJump(const int label, const char comment[]);
 void EmitBranchIfEqual(const int label, const char comment[]);
 void EmitBranchNotEqual(const int label, const char comment[]);
+void EmitIncExternInt(const char name[], const int amount);

@@ -516,19 +516,51 @@ void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, con
 
 void ParseExpression(struct Token *tok)
 {
-   printf("<expression>\n");
+   printf("<expression>");
    
-   if (tok->token == TINTLIT) {
+   if (tok->token == TOPAREN) {
+      printf("(");
+      GetToken(tok);
+      ParseExpression(tok);
+      if (tok->token == TCPAREN) {
+         GetToken(tok);
+         printf(")");
+      }
+      else {
+         fprintf(stderr, "Expected ')' after expression\n");
+      }
+   }
+   else if (tok->token == TINTLIT) {
       LoadIntConstant(tok->iValue, 'D', tok->str);
+      GetToken(tok);
    }
    else if (tok->token == TID) {
-      LoadExternInt(tok->str, 'D', "Load int");
+      char name[256];
+      
+      strncpy(name, tok->str, sizeof (name));
+      
+      // TODO: look up ID in symbol table
+
+      LoadExternInt(name, 'D', "Load int");
+      GetToken(tok);
+
+      if ((tok->token == TINC) || (tok->token == TDEC)) {
+         if (tok->token == TINC) {
+            EmitIncExternInt(name, 1);
+         }
+         else if (tok->token == TDEC) {
+            EmitIncExternInt(name, -1);
+         }
+         GetToken(tok);
+      }
    }
    else {
       Emit("nop", "", "<expression>");
+      GetToken(tok);
    }
    
-   GetToken(tok);
+   
+   printf("\n");
 }
 
 
@@ -698,7 +730,6 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
 
    printf("<switch> ");
    GetToken(tok);
-
 
    if (tok->token == TOPAREN) {
       GetToken(tok);
