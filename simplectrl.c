@@ -35,11 +35,11 @@ char *NameOfTheShip(void)
       } while (0);
       0377;
    } while (Rum);
-   switch (Sugar) {  // No functioning jump table yet, but 'case' and 'default' generate labels
-      456;
+   switch (Sugar) {
+      456;     // Unreachable code
       break;
    case 42:
-      789;
+      789;     // Fall through
    case 84:
    case 128:
       return 0x1000;

@@ -9,6 +9,7 @@
 #include "lexical.h"
 #include "symtab.h"
 
+#define MAXCASES (512)   // Maximum number of case labels in a 'switch'
 
 void initialise(void);
 void parse(const char fname[]);
@@ -685,20 +686,30 @@ void ParseFor(struct Token *tok, const int returnLabel)
 void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLabel)
 {
    const int blabel = AllocLabel('b');
-   int dlabel = blabel;
-   int clabel;
+   const int jlabel = AllocLabel('J'); // Label for jump over labelled_compound_statement to compare/branch chain
+   int dlabel = blabel;    // Default target for 'default' label is same as 'break'
+   int clabel;             // Label for each case
+   int nCases = 0;
+   int i;
+   struct {
+      int match;
+      int label;
+   } cases[MAXCASES];
 
    printf("<switch> ");
    GetToken(tok);
+
 
    if (tok->token == TOPAREN) {
       GetToken(tok);
       
       ParseExpression(tok);
       
+      EmitJump(jlabel, "switch: jump to compares");
+         
       if (tok->token == TCPAREN) {
          GetToken(tok);
-         
+
          printf("<labelled_compound_statement>\n");
 
          if (tok->token == TOBRACE) {
@@ -710,12 +721,15 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
 
                   if (tok->token == TINTLIT) {
                      printf("<case> %d: ", tok->iValue);
+                     cases[nCases].match = tok->iValue;
                      GetToken(tok);
 
                      if (tok->token == TCOLON) {
                         GetToken(tok);
                         clabel = AllocLabel('C');  // TODO: check case numbers are unique
-                        EmitLabel(clabel);         // TODO: save label IDs in array
+                        cases[nCases].label = clabel;
+                        nCases++;
+                        EmitLabel(clabel);
                      }
                      else {
                         fprintf(stderr, "Expected ':' after 'case'\n");
@@ -763,6 +777,23 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
       fprintf(stderr, "Expected '(' after 'switch'\n");
    }
 
+   EmitJump(blabel, "switch jump over compares");
+
+   EmitLabel(jlabel);
+
+   for (i = 0; i < nCases; i++) {
+      char caseMatch[16];
+      
+      snprintf(caseMatch, sizeof (caseMatch), "#%d", cases[i].match);
+      
+      Emit("cmpd", caseMatch, "switch compare");
+      EmitBranchIfEqual(cases[i].label, "branch back to code");
+   }
+   
+   if (dlabel != blabel) {
+      EmitJump(dlabel, "switch jump to default");
+   }
+   
    EmitLabel(blabel);
 }
 
