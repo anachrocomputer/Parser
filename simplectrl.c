@@ -18,16 +18,16 @@ char *NameOfTheShip(void)
    42;   // The only <expression> we know so far is an integer constant or an identifier
    for;
    '*';
-   if;
+   if (0) return;
    0xff;
    do {
       123L;
       break;
       5678;
-      continue;
+      if (Tea) continue;
       do {
          0x7FFF;
-         break;
+         if (Rum) break;
          1000;
          continue;
          999;
@@ -58,6 +58,12 @@ char *NameOfTheShip(void)
       return 0377;
    }
    Rum;
+   if (Tea) {
+      456;
+      return 0xaaaa;
+      789;
+   }
+   Whale;
    goto harbour;
 }
 

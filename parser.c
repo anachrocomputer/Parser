@@ -483,10 +483,31 @@ void ParseCompoundStatement(struct Token *tok, const int returnLabel, const int 
 
 void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel)
 {
-   printf("<if>\n");
+   const int elseLabel = AllocLabel('E');
+   const int endifLabel = AllocLabel('I');
+   
+   printf("<if> ");
    GetToken(tok);
    
-   ParseSemi(tok, "at end of 'if'");
+   if (tok->token == TOPAREN) {
+      GetToken(tok);
+      ParseExpression(tok);
+      
+      if (tok->token == TCPAREN) {
+         Emit("cmpd", "#0", "if test");
+         EmitBranchIfEqual(endifLabel, "if branch");
+         GetToken(tok);
+         ParseStatement(tok, returnLabel, breakLabel, continueLabel);
+      }
+      else {
+         fprintf(stderr, "Expected ')' after <expression> in 'if'\n");
+      }
+   }
+   else {
+      fprintf(stderr, "Expected '(' after 'if'\n");
+   }
+   
+   EmitLabel(endifLabel);
 }
 
 
