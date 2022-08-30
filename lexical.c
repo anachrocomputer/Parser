@@ -443,7 +443,8 @@ static int GetOneToken(struct Token *tok)
             state = 17;
             break;
          case '\'':
-            i = 0;
+            tok->str[0] = ch;
+            i = 1;
             state = 21;
             break;
          }
@@ -813,57 +814,86 @@ static int GetOneToken(struct Token *tok)
             state = 19;
          }
          break;
-      case 21:
+      case 21:       // seen single quote: character literal
          if (ch == '\\') {
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
             state = 22;
          }
          else {
             tok->str[i++] = ch;
             tok->str[i] = EOS;
+            tok->iValue = ch;
             state = 23;
          }
          break;
-      case 22:
-         if (ch == 'a') {
-            tok->str[i++] = '\a';
-            tok->str[i] = EOS;
-            state = 23;
-         }
-         else if (ch == 'n') {
-            tok->str[i++] = '\n';
-            tok->str[i] = EOS;
-            state = 23;
-         }
-         else if (ch == 'r') {
-            tok->str[i++] = '\r';
-            tok->str[i] = EOS;
-            state = 23;
-         }
-         else if (ch == 't') {
-            tok->str[i++] = '\t';
-            tok->str[i] = EOS;
-            state = 23;
-         }
-         else if (ch == '\'') {
-            tok->str[i++] = '\'';
-            tok->str[i] = EOS;
-            state = 23;
-         }
-         else if (ch == '\\') {
-            tok->str[i++] = '\\';
-            tok->str[i] = EOS;
-            state = 23;
-         }
-         else {
+      case 22:       // seen backslash: escaped charater constant
+         if (ch == 'a') {        // audible alert
             tok->str[i++] = ch;
             tok->str[i] = EOS;
+            tok->iValue = '\a';
+            state = 23;
+         }
+         else if (ch == 'b') {   // backspace
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = '\b';
+            state = 23;
+         }
+         else if (ch == 'f') {   // form feed
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = '\f';
+            state = 23;
+         }
+         else if (ch == 'n') {   // newline
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = '\n';
+            state = 23;
+         }
+         else if (ch == 'r') {   // return
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = '\r';
+            state = 23;
+         }
+         else if (ch == 't') {   // tab
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = '\t';
+            state = 23;
+         }
+         else if (ch == 'v') {   // vertical tab
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = '\v';
+            state = 23;
+         }
+         else if (ch == '\'') {  // single quote
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = '\'';
+            state = 23;
+         }
+         else if (ch == '\\') {  // backslash
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = '\\';
+            state = 23;
+         }
+         else {                  // unrecognised escape
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = ch;
             state = 23;
          }
          break;
-      case 23:
+      case 23:       // looking for closing single quote
          if (ch == '\'') {
             state = 0;
-            tok->iValue = tok->str[0];
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
             tok->token = TINTLIT;
             return (tok->token);
          }
