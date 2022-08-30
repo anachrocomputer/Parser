@@ -25,6 +25,7 @@ static int NextSym = 0;
 static struct Symbol SymTab[MAXSYMS];
 static FILE *Src = NULL;
 static bool TraceTokens = false;
+static bool TraceSyntax = false;
 
 static int GetOneToken(struct Token *tok);
 
@@ -76,6 +77,24 @@ void LexicalInit(void)
 void SetTokenTraceFlag(const bool enabled)
 {
    TraceTokens = enabled;
+}
+
+
+/* SetSyntaxTraceFlag --- set or clear the syntax/parser trace flag */
+
+void SetSyntaxTraceFlag(const bool enabled)
+{
+   TraceSyntax = enabled;
+}
+
+
+/* PrintSyntax --- print a syntax trace message, if enabled */
+
+void PrintSyntax(const char msg[])
+{
+   if (TraceSyntax) {
+      fputs(msg, stdout);
+   }
 }
 
 

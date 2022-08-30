@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "codegen.h"
@@ -43,6 +44,13 @@ int main(const int argc, const char *argv[])
          switch (argv[i][1]) {
          case 'T':
             SetTokenTraceFlag(true);
+            break;
+         case 'S':
+            SetSyntaxTraceFlag(true);
+            break;
+         default:
+            fprintf(stderr, "Usage: %s [-T] [-S] <filename>\n", argv[0]);
+            exit(EXIT_FAILURE);
             break;
          }
       }
@@ -209,7 +217,7 @@ int ParseDeclaration(struct Token *tok)
          GetToken(tok);
 
          if (tok->token == TOBRACE) {
-            printf("<function_definition>\n");
+            PrintSyntax("<function_definition>\n");
             ParseFunctionBody(tok, name, pLevel, type);
          }
          else {
@@ -391,7 +399,7 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
 
 void ParseStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel)
 {
-   printf("<statement> ");
+   PrintSyntax("<statement> ");
    
    switch (tok->token) {
    case TRETURN:
@@ -436,11 +444,11 @@ void ParseStatement(struct Token *tok, const int returnLabel, const int breakLab
 
 void ParseReturn(struct Token *tok, const int returnLabel)
 {
-   printf("<return> ");
+   PrintSyntax("<return> ");
    GetToken(tok);
 
    if (tok->token == TSEMI) {
-      printf("\n");
+      PrintSyntax("\n");
    }
    else {
       ParseExpression(tok);
@@ -456,7 +464,7 @@ void ParseReturn(struct Token *tok, const int returnLabel)
 
 void ParseCompoundStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel)
 {
-   printf("<compound_statement>\n");
+   PrintSyntax("<compound_statement>\n");
 
    GetToken(tok);
    
@@ -475,7 +483,7 @@ void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, con
    const int elseLabel = AllocLabel('E');
    const int endifLabel = AllocLabel('I');
    
-   printf("<if> ");
+   PrintSyntax("<if> ");
    GetToken(tok);
    
    if (tok->token == TOPAREN) {
@@ -504,15 +512,15 @@ void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, con
 
 void ParseExpression(struct Token *tok)
 {
-   printf("<expression>");
+   PrintSyntax("<expression>");
    
    if (tok->token == TOPAREN) {
-      printf("(");
+      PrintSyntax("(");
       GetToken(tok);
       ParseExpression(tok);
       if (tok->token == TCPAREN) {
          GetToken(tok);
-         printf(")");
+         PrintSyntax(")");
       }
       else {
          fprintf(stderr, "Expected ')' after expression\n");
@@ -547,8 +555,7 @@ void ParseExpression(struct Token *tok)
       GetToken(tok);
    }
    
-   
-   printf("\n");
+   PrintSyntax("\n");
 }
 
 
@@ -560,7 +567,7 @@ void ParseDo(struct Token *tok, const int returnLabel)
    const int clabel = AllocLabel('c');
    const int dlabel = AllocLabel('d');
    
-   printf("<do>\n");
+   PrintSyntax("<do>\n");
    EmitLabel(dlabel);
 
    GetToken(tok);
@@ -570,7 +577,7 @@ void ParseDo(struct Token *tok, const int returnLabel)
       fprintf(stderr, "Expected 'while' after 'do'\n");
    }
    else {
-      printf("<while> ");
+      PrintSyntax("<while> ");
       GetToken(tok);
       
       if (tok->token == TOPAREN) {
@@ -603,7 +610,7 @@ void ParseDo(struct Token *tok, const int returnLabel)
 
 void ParseBreak(struct Token *tok, const int breakLabel)
 {
-   printf("<break>\n");
+   PrintSyntax("<break>\n");
    GetToken(tok);
    
    if (breakLabel == NOLABEL) {
@@ -621,7 +628,7 @@ void ParseBreak(struct Token *tok, const int breakLabel)
 
 void ParseContinue(struct Token *tok, const int continueLabel)
 {
-   printf("<continue>\n");
+   PrintSyntax("<continue>\n");
    GetToken(tok);
    
    if (continueLabel == NOLABEL) {
@@ -639,7 +646,7 @@ void ParseContinue(struct Token *tok, const int continueLabel)
 
 void ParseGoto(struct Token *tok)
 {
-   printf("<goto>\n");
+   PrintSyntax("<goto>\n");
    GetToken(tok);
    
    if (tok->token == TID) {
@@ -660,7 +667,7 @@ void ParseWhile(struct Token *tok, const int returnLabel)
    const int blabel = AllocLabel('b');
    const int clabel = AllocLabel('c');
    
-   printf("<while> ");
+   PrintSyntax("<while> ");
    GetToken(tok);
    
    if (tok->token == TOPAREN) {
@@ -700,7 +707,7 @@ void ParseFor(struct Token *tok, const int returnLabel)
    const int slabel = AllocLabel('s');
    const int tlabel = AllocLabel('t');
 
-   printf("<for> ");
+   PrintSyntax("<for> ");
    GetToken(tok);
 
    if (tok->token == TOPAREN) {
@@ -762,7 +769,7 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
       int label;
    } cases[MAXCASES];
 
-   printf("<switch> ");
+   PrintSyntax("<switch> ");
    GetToken(tok);
 
    if (tok->token == TOPAREN) {
@@ -775,7 +782,7 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
       if (tok->token == TCPAREN) {
          GetToken(tok);
 
-         printf("<labelled_compound_statement>\n");
+         PrintSyntax("<labelled_compound_statement>\n");
 
          if (tok->token == TOBRACE) {
             GetToken(tok);
@@ -804,7 +811,7 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
                   }
                }
                else if (tok->token == TDEFAULT) {
-                  printf("<default> ");
+                  PrintSyntax("<default> ");
                   GetToken(tok);
                   
                   if (tok->token == TCOLON) {
@@ -884,7 +891,7 @@ bool ParseConstIntExpr(struct Token *tok, int *value, int *type)
          GetToken(tok);
       }
       else {
-         fprintf(stdout, "Expected ')' in constant expression\n");
+         fprintf(stderr, "Expected ')' in constant expression\n");
          ret = false;
       }
    }
