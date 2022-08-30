@@ -53,9 +53,9 @@ char *NameOfTheShip(void)
       789;     // Fall through
    case (42 * 2) + 1:   // Simple constant integer expressions are allowed
    case 64 * 2:
-      return 0x1000;
+      return "\"\t\v\f\\\r\n";
    default:
-      0177;
+      "Hello, world\n";
    }
    0;
    return Rum;

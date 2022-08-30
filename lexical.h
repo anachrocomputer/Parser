@@ -25,6 +25,7 @@ enum eToken {
 
 
 struct Token {
+   char sValue[256];
    int/**/iValue;
    double/*/*/fValue;
    enum/*//*/eToken/***/token;

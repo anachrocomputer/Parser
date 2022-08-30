@@ -276,9 +276,11 @@ static int GetOneToken(struct Token *tok)
 {
    int ch;
    int i;
+   int j;
    static int state = 0;
 
    tok->token = TNULL;
+   tok->sValue[0] = EOS;
    tok->iValue = 0;
    tok->fValue = 0.0;
    tok->str[0] = EOS;
@@ -424,7 +426,9 @@ static int GetOneToken(struct Token *tok)
             state = 10;
             break;
          case '"':
-            i = 0;
+            tok->str[0] = ch;
+            i = 1;
+            j = 0;
             state = 12;
             break;
          case '%':
@@ -673,40 +677,63 @@ static int GetOneToken(struct Token *tok)
          break;
       case 12:       // seen '"', string literal
          if (ch == '\\') {
+            tok->str[i++] = ch;
             state = 13;
          }
          else if (ch == '"') {
             state = 0;
+            tok->str[i++] = ch;
             tok->str[i] = EOS;
+            tok->sValue[j] = EOS;
             tok->token = TSTRLIT;
             return (tok->token);
          }
          else {
             tok->str[i++] = ch;
+            tok->sValue[j++] = ch;
          }
          break;
       case 13:       // seen '\' within string literal
          switch (ch) {
-         case 'a':
-            tok->str[i++] = '\a';
+         case 'a':      // audible alert
+            tok->str[i++] = ch;
+            tok->sValue[j++] = '\a';
             break;
-         case 'n':
-            tok->str[i++] = '\n';
+         case 'b':      // backspace
+            tok->str[i++] = ch;
+            tok->sValue[j++] = '\b';
             break;
-         case 'r':
-            tok->str[i++] = '\r';
+         case 'f':      // form feed
+            tok->str[i++] = ch;
+            tok->sValue[j++] = '\f';
             break;
-         case 't':
-            tok->str[i++] = '\t';
+         case 'n':      // newline
+            tok->str[i++] = ch;
+            tok->sValue[j++] = '\n';
             break;
-         case '\\':
-            tok->str[i++] = '\\';
+         case 'r':      // return
+            tok->str[i++] = ch;
+            tok->sValue[j++] = '\r';
             break;
-         case '"':
-            tok->str[i++] = '"';
+         case 't':      // tab
+            tok->str[i++] = ch;
+            tok->sValue[j++] = '\t';
+            break;
+         case 'v':      // vertical tab
+            tok->str[i++] = ch;
+            tok->sValue[j++] = '\v';
+            break;
+         case '\\':     // backslash
+            tok->str[i++] = ch;
+            tok->sValue[j++] = '\\';
+            break;
+         case '"':      // double quote
+            tok->str[i++] = ch;
+            tok->sValue[j++] = ch;
             break;
          default:
             tok->str[i++] = ch;
+            tok->sValue[j++] = ch;
             break;
          }
          state = 12;
@@ -827,7 +854,7 @@ static int GetOneToken(struct Token *tok)
             state = 23;
          }
          break;
-      case 22:       // seen backslash: escaped charater constant
+      case 22:       // seen backslash: escaped character constant
          if (ch == 'a') {        // audible alert
             tok->str[i++] = ch;
             tok->str[i] = EOS;

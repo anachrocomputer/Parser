@@ -550,6 +550,10 @@ void ParseExpression(struct Token *tok)
          GetToken(tok);
       }
    }
+   else if (tok->token == TSTRLIT) {
+      Emit("nop", "", tok->str);
+      GetToken(tok);
+   }
    else {
       Emit("nop", "", "<expression>");
       GetToken(tok);
