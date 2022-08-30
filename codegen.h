@@ -32,3 +32,4 @@ void EmitJump(const int label, const char comment[]);
 void EmitBranchIfEqual(const int label, const char comment[]);
 void EmitBranchNotEqual(const int label, const char comment[]);
 void EmitIncExternInt(const char name[], const int amount);
+void EmitCompareIntConstant(const int compare, const char comment[]);

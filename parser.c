@@ -446,7 +446,7 @@ void ParseReturn(struct Token *tok, const int returnLabel)
       ParseExpression(tok);
    }
    
-   EmitJump(returnLabel, "Jump to return");
+   EmitJump(returnLabel, "return");
 
    ParseSemi(tok, "at end of 'return'");
 }
@@ -483,8 +483,8 @@ void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, con
       ParseExpression(tok);
       
       if (tok->token == TCPAREN) {
-         Emit("cmpd", "#0", "if test");
-         EmitBranchIfEqual(endifLabel, "if branch");
+         EmitCompareIntConstant(0, "if: test");
+         EmitBranchIfEqual(endifLabel, "if: branch");
          GetToken(tok);
          ParseStatement(tok, returnLabel, breakLabel, continueLabel);
       }
@@ -579,8 +579,8 @@ void ParseDo(struct Token *tok, const int returnLabel)
          GetToken(tok);
          ParseExpression(tok);
          
-         Emit("cmpd", "#0", "do-while test");
-         EmitBranchNotEqual(dlabel, "do-while branch");
+         EmitCompareIntConstant(0, "do-while: test");
+         EmitBranchNotEqual(dlabel, "do-while: branch");
 
          if (tok->token == TCPAREN) {
             GetToken(tok);
@@ -670,14 +670,14 @@ void ParseWhile(struct Token *tok, const int returnLabel)
       
       ParseExpression(tok);
       
-      Emit("cmpd", "#0", "while test");
-      EmitBranchIfEqual(blabel, "while exit");
+      EmitCompareIntConstant(0, "while: test");
+      EmitBranchIfEqual(blabel, "while: exit");
 
       if (tok->token == TCPAREN) {
          GetToken(tok);
          
          ParseStatement(tok, returnLabel, blabel, clabel);
-         EmitJump(clabel, "while loop");
+         EmitJump(clabel, "while: loop");
       }
       else {
          fprintf(stderr, "Expected ')' after 'while'\n");
@@ -714,9 +714,9 @@ void ParseFor(struct Token *tok, const int returnLabel)
 
       ParseExpression(tok);      // Test
 
-      Emit("cmpd", "#0", "for test");
-      EmitBranchIfEqual(blabel, "for exit");
-      EmitJump(slabel, "for jump to statement");
+      EmitCompareIntConstant(0, "for: test");
+      EmitBranchIfEqual(blabel, "for: exit");
+      EmitJump(slabel, "for: jump to statement");
 
       ParseSemi(tok, "in 'for'");
 
@@ -724,14 +724,14 @@ void ParseFor(struct Token *tok, const int returnLabel)
 
       ParseExpression(tok);      // Increment
 
-      EmitJump(tlabel, "for jump back to test");
+      EmitJump(tlabel, "for: jump back to test");
 
       if (tok->token == TCPAREN) {
          GetToken(tok);
          
          EmitLabel(slabel);
          ParseStatement(tok, returnLabel, blabel, clabel);
-         EmitJump(clabel, "for loop");
+         EmitJump(clabel, "for: loop");
       }
       else {
          fprintf(stderr, "Expected ')' after 'for'\n");
@@ -841,21 +841,17 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
       fprintf(stderr, "Expected '(' after 'switch'\n");
    }
 
-   EmitJump(blabel, "switch jump over compares");
+   EmitJump(blabel, "switch: jump over compares");
 
    EmitLabel(jlabel);
 
    for (i = 0; i < nCases; i++) {
-      char caseMatch[16];
-      
-      snprintf(caseMatch, sizeof (caseMatch), "#%d", cases[i].match);
-      
-      Emit("cmpd", caseMatch, "switch compare");
-      EmitBranchIfEqual(cases[i].label, "branch back to code");
+      EmitCompareIntConstant(cases[i].match, "switch: compare");
+      EmitBranchIfEqual(cases[i].label, "switch: branch to code");
    }
    
    if (dlabel != blabel) {
-      EmitJump(dlabel, "switch jump to default");
+      EmitJump(dlabel, "switch: default");
    }
    
    EmitLabel(blabel);

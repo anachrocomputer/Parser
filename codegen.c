@@ -434,3 +434,15 @@ void EmitIncExternInt(const char name[], const int amount)
    Emit("leax", op, "inc");
    Emit("stx", target, "inc");
 }
+
+
+/* EmitCompareIntConstant --- code to compare an integer constant */
+
+void EmitCompareIntConstant(const int compare, const char comment[])
+{
+   char cmpArg[16];
+   
+   snprintf(cmpArg, sizeof (cmpArg), "#%d", compare);
+   
+   Emit("cmpd", cmpArg, comment);
+}
