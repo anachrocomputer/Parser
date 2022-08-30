@@ -79,11 +79,32 @@ void EmitLabel(const int label)
 }
 
 
-/* EmitFunctionLabel --- emit a label for a function name */
+/* EmitFunctionEntry --- emit a label and setup code for a function */
 
-void EmitFunctionLabel(const char name[])
+void EmitFunctionEntry(const char name[], const int nBytes)
 {
    fprintf(Asm, "%c%-44s ; Function entry point\n", NAME_PREFIX, name);
+
+   Emit("pshs", "u", "Save old frame pointer");
+   Emit("tfr", "s,u", "Make new frame pointer");
+   
+   if (nBytes != 0) {
+      char frame[32];
+      
+      snprintf(frame, sizeof (frame), "-%d,s", nBytes);
+      Emit("leas", frame, "Allocate stack frame");
+   }
+}
+
+
+/* EmitFunctionExit --- emit return label and function exit code */
+
+void EmitFunctionExit(const int returnLabel)
+{
+   EmitLabel(returnLabel);
+   Emit("tfr", "u,s", "Deallocate stack frame");
+   Emit("puls", "u", "Restore frame pointer");
+   Emit("rts", "", "Return to caller");
 }
 
 

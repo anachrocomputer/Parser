@@ -370,19 +370,9 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
    }
    
    // Function entry sequence
-   EmitFunctionLabel(name);
-   Emit("pshs", "u", "Save old frame pointer");
-   Emit("tfr", "s,u", "Make new frame pointer");
-   
    printf("Size of 'auto' variables: %d\n", autoSize);
+   EmitFunctionEntry(name, autoSize);
 
-   if (autoSize != 0) {
-      char frame[32];
-      
-      snprintf(frame, sizeof (frame), "-%d,s", autoSize);
-      Emit("leas", frame, "Allocate stack frame");
-   }
-   
    // Function's executable code
    while (tok->token != TCBRACE) {
       ParseStatement(tok, returnLabel, NOLABEL, NOLABEL);
@@ -391,10 +381,7 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
    GetToken(tok);
    
    // Function exit sequence
-   EmitLabel(returnLabel);
-   Emit("tfr", "u,s", "Deallocate stack frame");
-   Emit("puls", "u", "Restore frame pointer");
-   Emit("rts", "", "Return to caller");
+   EmitFunctionExit(returnLabel);
 
    printf("%s returns\n", __FUNCTION__);
 }
