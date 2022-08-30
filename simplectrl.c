@@ -65,18 +65,18 @@ char *NameOfTheShip(void)
    while (Rum) Tea;
    Sugar--;
    while (Tea) {
-      3456;
+      '\'';
       break;
-      6789;
+      '\t';
       continue;
-      0x9abc;
+      '0';
       return 0377;
    }
    Rum;
    if (Tea) {
-      456;
+      '\n';
       return (0xaaaa);
-      789;
+      '\\';
    }
    Whale;
    for (444; Whale; Whale--)
