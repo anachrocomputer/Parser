@@ -6,6 +6,7 @@ external declarations, functions, and statements.
 See 'simpledecl.c' and 'simplectrl.c' for example files that can be parsed.
 
 Use the '-T' command-line option to enable token-level debugging output.
+Use the '-S' command-line option to enable syntax trace output.
 
 ## Code Generation ##
 
