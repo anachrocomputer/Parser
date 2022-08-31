@@ -7,8 +7,8 @@ float Rum;
 double Whale;
 
 // Initialised scalars
-char Ship = 'T';
-int Sailors = 42;
+char Ship = 'S' + 1;
+int Sailors = 7 * 6;
 float Soon = 12.0f;
 double Cargo = 153e4;
 
@@ -18,6 +18,12 @@ char **Billy = 0;
 int *Heave = 0;
 float **Rope = 0;
 double *Anchor = 0;
+
+// Arrays
+char NameOfTheWhale[128];
+int Mast[2 * 2];
+float Cask[14 + 2];
+double Funnel[3];
 
 // Functions
 void PutToSea();

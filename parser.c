@@ -110,6 +110,8 @@ int ParseDeclaration(struct Token *tok)
    char name[256];
    int type;
    int pLevel;
+   int iValue;
+   int iType;
    
    name[0] = '\0';
    type = 0;
@@ -152,32 +154,57 @@ int ParseDeclaration(struct Token *tok)
          if (pLevel == 0) {
             switch (type) {
             case TCHAR:
-               printf("Initialised char '%s' '%s'\n", name, tok->str);
-               EmitExternChar(name, tok->iValue, "char");
+               if (ParseConstIntExpr(tok, &iValue, &iType)) {
+                  printf("Initialised char '%s' %d\n", name, iValue);
+                  EmitExternChar(name, iValue, "char");
+               }
+               else {
+                  fprintf(stderr, "Expected integer constant after '='\n");
+               }
                break;
             case TINT:
-               printf("Initialised int '%s' '%s'\n", name, tok->str);
-               EmitExternInt(name, tok->iValue, "int");
+               if (ParseConstIntExpr(tok, &iValue, &iType)) {
+                  printf("Initialised int '%s' %d\n", name, iValue);
+                  EmitExternInt(name, iValue, "int");
+               }
+               else {
+                  fprintf(stderr, "Expected integer constant after '='\n");
+               }
                break;
             case TFLOAT:
                printf("Initialised float '%s' '%s'\n", name, tok->str);
                EmitExternFloat(name, tok->fValue, "float");
+               GetToken(tok);
                break;
             case TDOUBLE:
                printf("Initialised double '%s' '%s'\n", name, tok->str);
                EmitExternDouble(name, tok->fValue, "double");
+               GetToken(tok);
                break;
             }
          }
          else {
             printf("Initialised pointer '%s' '%s'\n", name, tok->str);
             EmitExternPointer(name, tok->iValue, "pointer");
+            GetToken(tok);
          }
          
-         GetToken(tok);
          ParseSemi(tok, "in declaration");
          break;
       case TOSQBRK:  // Array
+         GetToken(tok);
+         if (ParseConstIntExpr(tok, &iValue, &iType)) {
+            printf("Array %d\n", iValue);
+            if (tok->token == TCSQBRK) {
+               GetToken(tok);
+            }
+            else {
+               fprintf(stderr, "Expected ']' after array dimension\n");
+            }
+         }
+         else {
+            fprintf(stderr, "Expected integer constant after '['\n");
+         }
          break;
       case TOPAREN:  // Function
          GetToken(tok);
