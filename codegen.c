@@ -141,11 +141,17 @@ void EmitStaticInt(const int label, const int init, const char comment[])
 void EmitStaticFloat(const int label, const float init, const char comment[])
 {
    int b1, b2, b3, b4;
+   union {
+      float f;
+      unsigned char b[4];
+   } v;
    
-   b1 = 0;  // TODO: generate 32-bit IEEE-754 'float' here
-   b2 = 0;
-   b3 = 0;
-   b4 = 0;
+   v.f = init;
+   
+   b1 = v.b[3];   // 6809 is big-endian
+   b2 = v.b[2];
+   b3 = v.b[1];
+   b4 = v.b[0];
 
    fprintf(Asm, "l%04d   fcb  %d,%d,%d,%d         ; static float %s = %g\n", label, b1, b2, b3, b4, comment, init);
 }
@@ -156,15 +162,21 @@ void EmitStaticFloat(const int label, const float init, const char comment[])
 void EmitStaticDouble(const int label, const double init, const char comment[])
 {
    int b1, b2, b3, b4, b5, b6, b7, b8;
+   union {
+      double d;
+      unsigned char b[4];
+   } v;
    
-   b1 = 0;  // TODO: generate 64-bit IEEE-754 'double' here
-   b2 = 0;
-   b3 = 0;
-   b4 = 0;
-   b5 = 0;
-   b6 = 0;
-   b7 = 0;
-   b8 = 0;
+   v.d = init;
+   
+   b1 = v.b[7];   // 6809 is big-endian
+   b2 = v.b[6];
+   b3 = v.b[5];
+   b4 = v.b[4];
+   b5 = v.b[3];
+   b6 = v.b[2];
+   b7 = v.b[1];
+   b8 = v.b[0];
 
    fprintf(Asm, "l%04d   fcb  %d,%d,%d,%d,%d,%d,%d,%d ; static double %s = %g\n", label, b1, b2, b3, b4, b5, b6, b7, b8, comment, init);
 }
@@ -224,11 +236,17 @@ void EmitExternPointer(const char name[], const int init, const char comment[])
 void EmitExternFloat(const char name[], const float init, const char comment[])
 {
    int b1, b2, b3, b4;
+   union {
+      float f;
+      unsigned char b[4];
+   } v;
    
-   b1 = 0;  // TODO: generate IEEE-754 'float' here
-   b2 = 0;
-   b3 = 0;
-   b4 = 0;
+   v.f = init;
+   
+   b1 = v.b[3];   // 6809 is big-endian
+   b2 = v.b[2];
+   b3 = v.b[1];
+   b4 = v.b[0];
 
    fprintf(Asm, "%c%-30s fcb  %d,%d,%d,%d ; %g %s\n", NAME_PREFIX, name, b1, b2, b3, b4, init, comment);
 }
@@ -239,16 +257,22 @@ void EmitExternFloat(const char name[], const float init, const char comment[])
 void EmitExternDouble(const char name[], const double init, const char comment[])
 {
    int b1, b2, b3, b4, b5, b6, b7, b8;
+   union {
+      double d;
+      unsigned char b[4];
+   } v;
    
-   b1 = 0;  // TODO: generate IEEE-754 'double' here
-   b2 = 0;
-   b3 = 0;
-   b4 = 0;
-   b5 = 0;
-   b6 = 0;
-   b7 = 0;
-   b8 = 0;
-
+   v.d = init;
+   
+   b1 = v.b[7];   // 6809 is big-endian
+   b2 = v.b[6];
+   b3 = v.b[5];
+   b4 = v.b[4];
+   b5 = v.b[3];
+   b6 = v.b[2];
+   b7 = v.b[1];
+   b8 = v.b[0];
+   
    fprintf(Asm, "%c%-30s fcb  %d,%d,%d,%d,%d,%d,%d,%d ; %g %s\n", NAME_PREFIX, name, b1, b2, b3, b4, b5, b6, b7, b8, init, comment);
 }
 
