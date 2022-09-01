@@ -909,7 +909,7 @@ static int GetOneToken(struct Token *tok)
             tok->iValue = '\\';
             state = 23;
          }
-         else if ((ch == 'x') || (ch == 'X')) {  // hex number
+         else if (ch == 'x') {   // hex number
             tok->str[i++] = ch;
             tok->str[i] = EOS;
             tok->iValue = 0;

@@ -55,7 +55,7 @@ char *NameOfTheShip(void)
    case 64 * 2:
       return "\"\t\v\f\\\r\n";
       break;
-   case '\XAA':
+   case '\xAA':
       return '\010';
    default:
       "Hello, world\n";
