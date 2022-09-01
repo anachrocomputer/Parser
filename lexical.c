@@ -158,6 +158,8 @@ enum eToken lookupKeyword(const char name[])
 
 void PrintToken(const struct Token *tok)
 {
+   int i;
+   
    switch (tok->token) {
    case TNULL:
       printf("NULL:     '%c'\n", tok->str[0]);
@@ -175,7 +177,11 @@ void PrintToken(const struct Token *tok)
       printf("NUMBER:   '%s' %s %g\n", tok->str, tokenAsStr(tok), tok->fValue);
       break;
    case TSTRLIT:
-      printf("STRING:   '%s' %s\n", tok->str, tokenAsStr(tok));
+      printf("STRING:   '%s' %s", tok->str, tokenAsStr(tok));
+      for (i = 0; i < tok->sLength; i++) {
+         printf(" %02x", tok->sValue[i] & 0xff);
+      }
+      printf("\n");
       break;
    case TBREAK:
    case TCONTINUE:

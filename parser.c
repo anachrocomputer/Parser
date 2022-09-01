@@ -10,11 +10,13 @@
 #include "lexical.h"
 #include "symtab.h"
 
+//#define LEX_TESTER
+
 #define MAXCASES (512)   // Maximum number of case labels in a 'switch'
 
 void initialise(void);
 void parse(const char fname[]);
-void parser(const char fname[]);
+void parser(void);
 int ParseDeclaration(struct Token *tok);
 void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, const int type);
 void ParseStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel);
@@ -85,21 +87,28 @@ void parse(const char fname[])
       return;
    }
    
-   parser(fname);
+   parser();
 
    CloseAssemblerFile();
    CloseSourceFile();
 }
 
 
-void parser(const char fname[])
+/* parser --- parse and translate a single compilation-unit */
+
+void parser(void)
 {
    struct Token tok;
 
+#ifdef LEX_TESTER
+   while (GetToken(&tok) != TEOF)
+      PrintToken(&tok);
+#else
    GetToken(&tok);
 
    while (ParseDeclaration(&tok) != EOF)
       ;
+#endif
 }
 
 
@@ -417,8 +426,6 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
    
    // Function exit sequence
    EmitFunctionExit(returnLabel);
-
-   printf("%s returns\n", __FUNCTION__);
 }
 
 
