@@ -24,6 +24,8 @@ char NameOfTheWhale[128];
 int Mast[2 * 2];
 float Cask[14 + 2];
 double Funnel[3];
+char *CrewNames['*'];
+void *ParrotNames['\x0f'];
 
 // Functions
 void PutToSea();

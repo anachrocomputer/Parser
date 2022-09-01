@@ -909,6 +909,18 @@ static int GetOneToken(struct Token *tok)
             tok->iValue = '\\';
             state = 23;
          }
+         else if ((ch == 'x') || (ch == 'X')) {  // hex number
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = 0;
+            state = 29;
+         }
+         else if ((ch >= '0') && (ch <= '7')) {  // octal number
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = ch - '0';
+            state = 30;
+         }
          else {                  // unrecognised escape
             tok->str[i++] = ch;
             tok->str[i] = EOS;
@@ -1063,6 +1075,56 @@ static int GetOneToken(struct Token *tok)
             tok->token = TFLOATLIT;
             tok->fValue = strtod(tok->str, NULL);
             return (tok->token);
+         }
+         break;
+      case 29:       // seen 'x' or 'X' after '\' in character constant
+         if ((ch >= '0') && (ch <= '9')) {
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = (tok->iValue << 4) + (ch - '0');
+         }
+         else if ((ch >= 'a') && (ch <= 'f')) {
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = (tok->iValue << 4) + (ch - 'a') + 10;
+         }
+         else if ((ch >= 'A') && (ch <= 'F')) {
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = (tok->iValue << 4) + (ch - 'A') + 10;
+         }
+         else if (ch == '\'') {
+            state = 0;
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->token = TINTLIT;
+            return (tok->token);
+         }
+         else {
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = ch;
+            state = 23;
+         }
+         break;
+      case 30:       // seen '0' to '7' after '\' in character constant
+         if ((ch >= '0') && (ch <= '7')) {
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = (tok->iValue << 3) + (ch - '0');
+         }
+         else if (ch == '\'') {
+            state = 0;
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->token = TINTLIT;
+            return (tok->token);
+         }
+         else {
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->iValue = ch;
+            state = 23;
          }
          break;
       }

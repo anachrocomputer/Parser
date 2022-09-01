@@ -29,7 +29,7 @@ char *NameOfTheShip(void)
       if (Whale)
          return (17);
    }
-   if (0) return;
+   if ('\0') return;
    0xff;
    do {
       123L;
@@ -54,12 +54,15 @@ char *NameOfTheShip(void)
    case (42 * 2) + 1:   // Simple constant integer expressions are allowed
    case 64 * 2:
       return "\"\t\v\f\\\r\n";
+      break;
+   case '\XAA':
+      return '\010';
    default:
       "Hello, world\n";
    }
    0;
    return Rum;
-   do Tea; while (1);
+   do Tea; while ('\01');
    goto sea;
    Tea++;
    while (Rum) Tea;
@@ -79,8 +82,8 @@ char *NameOfTheShip(void)
       '\\';
    }
    Whale;
-   for (444; Whale; Whale--)
-      for (555; Tea; Tea++) {
+   for ('\xff'; Whale; Whale--)
+      for ('\377'; Tea; Tea++) {
          if (Sugar)
             break;
          if (Rum)
