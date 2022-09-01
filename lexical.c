@@ -281,6 +281,7 @@ static int GetOneToken(struct Token *tok)
 
    tok->token = TNULL;
    tok->sValue[0] = EOS;
+   tok->sLength = 0;
    tok->iValue = 0;
    tok->fValue = 0.0;
    tok->str[0] = EOS;
@@ -685,6 +686,7 @@ static int GetOneToken(struct Token *tok)
             tok->str[i++] = ch;
             tok->str[i] = EOS;
             tok->sValue[j] = EOS;
+            tok->sLength = j + 1; // Include EOS in the length
             tok->token = TSTRLIT;
             return (tok->token);
          }
@@ -698,45 +700,66 @@ static int GetOneToken(struct Token *tok)
          case 'a':      // audible alert
             tok->str[i++] = ch;
             tok->sValue[j++] = '\a';
+            state = 12;
             break;
          case 'b':      // backspace
             tok->str[i++] = ch;
             tok->sValue[j++] = '\b';
+            state = 12;
             break;
          case 'f':      // form feed
             tok->str[i++] = ch;
             tok->sValue[j++] = '\f';
+            state = 12;
             break;
          case 'n':      // newline
             tok->str[i++] = ch;
             tok->sValue[j++] = '\n';
+            state = 12;
             break;
          case 'r':      // return
             tok->str[i++] = ch;
             tok->sValue[j++] = '\r';
+            state = 12;
             break;
          case 't':      // tab
             tok->str[i++] = ch;
             tok->sValue[j++] = '\t';
+            state = 12;
             break;
          case 'v':      // vertical tab
             tok->str[i++] = ch;
             tok->sValue[j++] = '\v';
+            state = 12;
             break;
          case '\\':     // backslash
             tok->str[i++] = ch;
             tok->sValue[j++] = '\\';
+            state = 12;
             break;
          case '"':      // double quote
             tok->str[i++] = ch;
             tok->sValue[j++] = ch;
+            state = 12;
+            break;
+         case '0':      // octal escape
+         case '1': case '2': case '3': case '4':
+         case '5': case '6': case '7':
+            tok->str[i++] = ch;
+            tok->sValue[j] = ch - '0';
+            state = 31;
+            break;
+         case 'x':      // hex escape
+            tok->str[i++] = ch;
+            tok->sValue[j] = 0;
+            state = 32;
             break;
          default:
             tok->str[i++] = ch;
             tok->sValue[j++] = ch;
+            state = 12;
             break;
          }
-         state = 12;
          break;
       case 14:       // seen '%'
          if (ch == '=') {
@@ -1077,7 +1100,7 @@ static int GetOneToken(struct Token *tok)
             return (tok->token);
          }
          break;
-      case 29:       // seen 'x' or 'X' after '\' in character constant
+      case 29:       // seen 'x' after '\' in character constant
          if ((ch >= '0') && (ch <= '9')) {
             tok->str[i++] = ch;
             tok->str[i] = EOS;
@@ -1093,17 +1116,8 @@ static int GetOneToken(struct Token *tok)
             tok->str[i] = EOS;
             tok->iValue = (tok->iValue << 4) + (ch - 'A') + 10;
          }
-         else if (ch == '\'') {
-            state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
-            tok->token = TINTLIT;
-            return (tok->token);
-         }
          else {
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
-            tok->iValue = ch;
+            ungetc(ch, Src);
             state = 23;
          }
          break;
@@ -1113,18 +1127,39 @@ static int GetOneToken(struct Token *tok)
             tok->str[i] = EOS;
             tok->iValue = (tok->iValue << 3) + (ch - '0');
          }
-         else if (ch == '\'') {
-            state = 0;
+         else {
+            ungetc(ch, Src);
+            state = 23;
+         }
+         break;
+      case 31:       // seen '0' to '7' after '\' in string constant
+         if ((ch >= '0') && (ch <= '7')) {
             tok->str[i++] = ch;
-            tok->str[i] = EOS;
-            tok->token = TINTLIT;
-            return (tok->token);
+            tok->sValue[j] = (tok->sValue[j] << 3) + (ch - '0');
          }
          else {
+            ungetc(ch, Src);
+            j++;
+            state = 12;
+         }
+         break;
+      case 32:       // seen 'x' after '\' in string constant
+         if ((ch >= '0') && (ch <= '9')) {
             tok->str[i++] = ch;
-            tok->str[i] = EOS;
-            tok->iValue = ch;
-            state = 23;
+            tok->sValue[j] = (tok->sValue[j] << 4) + (ch - '0');
+         }
+         else if ((ch >= 'a') && (ch <= 'f')) {
+            tok->str[i++] = ch;
+            tok->sValue[j] = (tok->sValue[j] << 4) + (ch - 'a') + 10;
+         }
+         else if ((ch >= 'A') && (ch <= 'F')) {
+            tok->str[i++] = ch;
+            tok->sValue[j] = (tok->sValue[j] << 4) + (ch - 'A') + 10;
+         }
+         else {
+            ungetc(ch, Src);
+            j++;
+            state = 12;
          }
          break;
       }
