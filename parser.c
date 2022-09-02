@@ -406,11 +406,7 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
       
       GetToken(tok);
       
-      if (tok->token != TSEMI) {
-         Error("Missing semicolon in local variable declaration");
-      }
-
-      GetToken(tok);
+      ParseSemi(tok, "in local variable declaration");
    }
    
    // Function entry sequence
