@@ -15,7 +15,7 @@ char *NameOfTheShip(void)
       33.3; // 'double' constant will generate a NOP in the assembly language
       return 999;
    }
-   42;   // The only <expression> we know so far is an integer constant or an identifier
+   42;   // The only <expression> we know so far is a numeric constant, string constant, or an identifier
    for (4; Tea; Tea++)  // for-loops work but cannot have empty expressions yet
       Rum;
    '*';
@@ -29,7 +29,10 @@ char *NameOfTheShip(void)
       if (Whale)
          return (17);
    }
-   if ('\0') return;
+   if ('\0')
+      return;
+   else
+      "\xff";  // String constant will generate a NOP in the assembly language
    0xff;
    do {
       123L;
@@ -81,6 +84,10 @@ char *NameOfTheShip(void)
       return (0xaaaa);
       '\\';
    }
+   else {
+      "tonguing";
+      return ("\0");
+   }
    Whale;
    for ('\xff'; Whale; Whale--)
       for ('\377'; Tea; Tea++) {
@@ -89,12 +96,9 @@ char *NameOfTheShip(void)
          if (Rum)
             continue;
       }
-   "tonguing";
    "";               // One byte, the EOS
    "\t\r\n";         // Four bytes, 09 0D 0A 00, including the EOS
-   "\xff";
    "\xefg\x00";      // Four bytes, EF 67 00 00, including the EOS
-   "\0";
    "\010";
    "\377\0\0";       // Four bytes, FF 00 00 00, including the EOS
    "\007\077\377";   // Also four bytes

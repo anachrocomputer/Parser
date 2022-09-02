@@ -511,7 +511,6 @@ void ParseCompoundStatement(struct Token *tok, const int returnLabel, const int 
 void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel)
 {
    const int elseLabel = AllocLabel('E');
-   const int endifLabel = AllocLabel('I');
    
    PrintSyntax("<if> ");
    GetToken(tok);
@@ -522,9 +521,22 @@ void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, con
       
       if (tok->token == TCPAREN) {
          EmitCompareIntConstant(0, "if: test");
-         EmitBranchIfEqual(endifLabel, "if: branch");
+         EmitBranchIfEqual(elseLabel, "if: branch");
          GetToken(tok);
          ParseStatement(tok, returnLabel, breakLabel, continueLabel);
+         
+         if (tok->token == TELSE) {
+            const int endifLabel = AllocLabel('I');
+
+            GetToken(tok);
+            EmitJump(endifLabel, "if: jump to endif");
+            EmitLabel(elseLabel);
+            ParseStatement(tok, returnLabel, breakLabel, continueLabel);
+            EmitLabel(endifLabel);
+         }
+         else {
+            EmitLabel(elseLabel);
+         }
       }
       else {
          Error("Expected ')' after <expression> in 'if'");
@@ -533,8 +545,6 @@ void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, con
    else {
       Error("Expected '(' after 'if'");
    }
-   
-   EmitLabel(endifLabel);
 }
 
 
