@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 
 #include "lexical.h"
@@ -23,7 +24,10 @@ struct Symbol {
 
 static int NextSym = 0;
 static struct Symbol SymTab[MAXSYMS];
+static char SrcName[256];
 static FILE *Src = NULL;
+static int Line = 0;
+static int Pos = 0;
 static bool TraceTokens = false;
 static bool TraceSyntax = false;
 
@@ -90,11 +94,29 @@ void SetSyntaxTraceFlag(const bool enabled)
 
 /* PrintSyntax --- print a syntax trace message, if enabled */
 
-void PrintSyntax(const char msg[])
+void PrintSyntax(const char *fmt, ...)
 {
    if (TraceSyntax) {
-      fputs(msg, stdout);
+      va_list ap;
+
+      va_start(ap, fmt);
+      vfprintf(stdout, fmt, ap);
+      va_end(ap);
    }
+}
+
+
+/* Error --- print a compiler error message */
+
+void Error(const char *fmt, ...)
+{
+   va_list ap;
+
+   fprintf(stderr, "%s: %d:%d: ", SrcName, Line, Pos);
+   va_start(ap, fmt);
+   vfprintf(stderr, fmt, ap);
+   va_end(ap);
+   fputs("\n", stderr);
 }
 
 
@@ -122,7 +144,10 @@ bool OpenSourceFile(const char fname[])
       return (false);
    }
    
+   strncpy(SrcName, fname, sizeof (SrcName));
    Src = fp;
+   Line = 1;
+   Pos = 1;
    
    return (true);
 }
@@ -296,6 +321,14 @@ static int GetOneToken(struct Token *tok)
       if ((ch = getc(Src)) == EOF) {
          tok->token = TEOF;
          return (tok->token);
+      }
+      
+      if (ch == '\n') {
+         Line++;
+         Pos = 1;
+      }
+      else {
+         Pos++;
       }
 
       switch (state) {

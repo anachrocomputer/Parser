@@ -36,7 +36,8 @@ struct Token {
 void LexicalInit(void);
 void SetTokenTraceFlag(const bool enabled);
 void SetSyntaxTraceFlag(const bool enabled);
-void PrintSyntax(const char msg[]);
+void PrintSyntax(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
+void Error(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 void installkw(const char keyword[], enum eToken token, bool isType);
 bool OpenSourceFile(const char fname[]);
 bool CloseSourceFile(void);

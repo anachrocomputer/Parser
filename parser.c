@@ -151,7 +151,7 @@ int ParseDeclaration(struct Token *tok)
          GetToken(tok);
       }
       else {
-         fprintf(stderr, "Missing identifier in declaration\n");
+         Error("Missing identifier in declaration");
       }
 
       switch (tok->token) {
@@ -168,7 +168,7 @@ int ParseDeclaration(struct Token *tok)
                   EmitExternChar(name, iValue, "char");
                }
                else {
-                  fprintf(stderr, "Expected integer constant after '='\n");
+                  Error("Expected integer constant after '='");
                }
                break;
             case TINT:
@@ -177,7 +177,7 @@ int ParseDeclaration(struct Token *tok)
                   EmitExternInt(name, iValue, "int");
                }
                else {
-                  fprintf(stderr, "Expected integer constant after '='\n");
+                  Error("Expected integer constant after '='");
                }
                break;
             case TFLOAT:
@@ -208,11 +208,11 @@ int ParseDeclaration(struct Token *tok)
                GetToken(tok);
             }
             else {
-               fprintf(stderr, "Expected ']' after array dimension\n");
+               Error("Expected ']' after array dimension");
             }
          }
          else {
-            fprintf(stderr, "Expected integer constant after '['\n");
+            Error("Expected integer constant after '['");
          }
          break;
       case TOPAREN:  // Function
@@ -247,7 +247,7 @@ int ParseDeclaration(struct Token *tok)
             }
          }
          else {
-            fprintf(stderr, "Malformed function declaration");
+            Error("Malformed function declaration");
          }
 
          GetToken(tok);
@@ -290,13 +290,13 @@ int ParseDeclaration(struct Token *tok)
          }
          break;
       default:
-         fprintf(stderr, "Unexpected symbol '%s' in declaration\n", tok->str);
+         Error("Unexpected symbol '%s' in declaration", tok->str);
          break;
       }
       
       break;
    default:
-      fprintf(stderr, "Unexpected symbol '%s' in declaration\n", tok->str);
+      Error("Unexpected symbol '%s' in declaration", tok->str);
       break;
    }
 
@@ -401,13 +401,13 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
          }
       }
       else {
-         fprintf(stderr, "Expected identifier in local variable declaration\n");
+         Error("Expected identifier in local variable declaration");
       }
       
       GetToken(tok);
       
       if (tok->token != TSEMI) {
-         fprintf(stderr, "Missing semicolon in local variable declaration\n");
+         Error("Missing semicolon in local variable declaration");
       }
 
       GetToken(tok);
@@ -531,11 +531,11 @@ void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, con
          ParseStatement(tok, returnLabel, breakLabel, continueLabel);
       }
       else {
-         fprintf(stderr, "Expected ')' after <expression> in 'if'\n");
+         Error("Expected ')' after <expression> in 'if'");
       }
    }
    else {
-      fprintf(stderr, "Expected '(' after 'if'\n");
+      Error("Expected '(' after 'if'");
    }
    
    EmitLabel(endifLabel);
@@ -557,7 +557,7 @@ void ParseExpression(struct Token *tok)
          PrintSyntax(")");
       }
       else {
-         fprintf(stderr, "Expected ')' after expression\n");
+         Error("Expected ')' after expression");
       }
    }
    else if (tok->token == TINTLIT) {
@@ -612,7 +612,7 @@ void ParseDo(struct Token *tok, const int returnLabel)
    ParseStatement(tok, returnLabel, blabel, clabel);
 
    if (tok->token != TWHILE) {
-      fprintf(stderr, "Expected 'while' after 'do'\n");
+      Error("Expected 'while' after 'do'");
    }
    else {
       PrintSyntax("<while> ");
@@ -632,11 +632,11 @@ void ParseDo(struct Token *tok, const int returnLabel)
             ParseSemi(tok, "after 'do'-'while'");
          }
          else {
-            fprintf(stderr, "Expected ')' after 'do'-'while'\n");
+            Error("Expected ')' after 'do'-'while'");
          }
       }
       else {
-         fprintf(stderr, "Expected '(' after 'do'-'while'\n");
+         Error("Expected '(' after 'do'-'while'");
       }
    }
    
@@ -652,7 +652,7 @@ void ParseBreak(struct Token *tok, const int breakLabel)
    GetToken(tok);
    
    if (breakLabel == NOLABEL) {
-      fprintf(stderr, "'break' not inside a loop or 'switch'\n");
+      Error("'break' not inside a loop or 'switch'");
    }
    else {
       EmitJump(breakLabel, "break");
@@ -670,7 +670,7 @@ void ParseContinue(struct Token *tok, const int continueLabel)
    GetToken(tok);
    
    if (continueLabel == NOLABEL) {
-      fprintf(stderr, "'continue' not inside a loop\n");
+      Error("'continue' not inside a loop");
    }
    else {
       EmitJump(continueLabel, "continue");
@@ -693,7 +693,7 @@ void ParseGoto(struct Token *tok)
       ParseSemi(tok, "after 'goto'");
    }
    else {
-      fprintf(stderr, "Expected label name after 'goto'\n");
+      Error("Expected label name after 'goto'");
    }
 }
 
@@ -725,11 +725,11 @@ void ParseWhile(struct Token *tok, const int returnLabel)
          EmitJump(clabel, "while: loop");
       }
       else {
-         fprintf(stderr, "Expected ')' after 'while'\n");
+         Error("Expected ')' after 'while'");
       }
    }
    else {
-      fprintf(stderr, "Expected '(' after 'while'\n");
+      Error("Expected '(' after 'while'");
    }
 
    EmitLabel(blabel);
@@ -779,11 +779,11 @@ void ParseFor(struct Token *tok, const int returnLabel)
          EmitJump(clabel, "for: loop");
       }
       else {
-         fprintf(stderr, "Expected ')' after 'for'\n");
+         Error("Expected ')' after 'for'");
       }
    }
    else {
-      fprintf(stderr, "Expected '(' after 'for'\n");
+      Error("Expected '(' after 'for'");
    }
 
    EmitLabel(blabel);
@@ -830,7 +830,7 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
                   GetToken(tok);
 
                   if (ParseConstIntExpr(tok, &iValue, &iType)) {
-                     printf("<case> %d: ", iValue);
+                     PrintSyntax("<case> %d: ", iValue);
                      cases[nCases].match = iValue;
 
                      if (tok->token == TCOLON) {
@@ -841,11 +841,11 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
                         EmitLabel(clabel);
                      }
                      else {
-                        fprintf(stderr, "Expected ':' after 'case'\n");
+                        Error("Expected ':' after 'case'");
                      }
                   }
                   else {
-                     fprintf(stderr, "Expected integer constant after 'case'\n");
+                     Error("Expected integer constant after 'case'");
                   }
                }
                else if (tok->token == TDEFAULT) {
@@ -858,13 +858,13 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
                         EmitLabel(dlabel);
                      }
                      else {
-                        fprintf(stderr, "Multiple 'default:' labels in 'switch'\n");
+                        Error("Multiple 'default:' labels in 'switch'");
                      }
                      
                      GetToken(tok);
                   }
                   else {
-                     fprintf(stderr, "Expected ':' after 'default'\n");
+                     Error("Expected ':' after 'default'");
                   }
                }
                else {
@@ -875,15 +875,15 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
             GetToken(tok); /* Skip the closing curly bracket */
          }
          else {
-            fprintf(stderr, "Expected '{' after 'switch'\n");
+            Error("Expected '{' after 'switch'");
          }
       }
       else {
-         fprintf(stderr, "Expected ')' after 'switch'\n");
+         Error("Expected ')' after 'switch'");
       }
    }
    else {
-      fprintf(stderr, "Expected '(' after 'switch'\n");
+      Error("Expected '(' after 'switch'");
    }
 
    EmitJump(blabel, "switch: jump over compares");
@@ -911,7 +911,7 @@ void ParseSemi(struct Token *tok, const char location[])
       GetToken(tok);
    }
    else {
-      fprintf(stderr, "Missing semicolon %s\n", location);
+      Error("Missing semicolon %s", location);
    }
 }
 
@@ -929,7 +929,7 @@ bool ParseConstIntExpr(struct Token *tok, int *value, int *type)
          GetToken(tok);
       }
       else {
-         fprintf(stderr, "Expected ')' in constant expression\n");
+         Error("Expected ')' in constant expression");
          ret = false;
       }
    }
