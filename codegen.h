@@ -3,6 +3,13 @@
 
 #define NOLABEL    (-1)
 
+struct StringConstant {
+   int label;
+   char str[256];
+   char sValue[256];
+   int sLength;
+};
+
 void CodeGenInit(void);
 bool OpenAssemblerFile(const char fname[]);
 bool CloseAssemblerFile(void);
@@ -11,12 +18,14 @@ int AllocLabel(const char purpose);
 void EmitLabel(const int label);
 void EmitFunctionEntry(const char name[], const int nBytes);
 void EmitFunctionExit(const int returnLabel);
+void EmitStaticCharArray(const struct StringConstant *sc, const char name[]);
 void EmitStaticLong(const int label, const long int init, const char comment[]);
 void LoadStaticLong(const int label, const char comment[]);
 void EmitStaticInt(const int label, const int init, const char comment[]);
 void EmitStaticFloat(const int label, const float init, const char comment[]);
 void EmitStaticDouble(const int label, const double init, const char comment[]);
 void LoadIntConstant(const int val, const int reg, const char comment[]);
+void LoadLabelAddr(const int label, const char comment[]);
 void EmitExternChar(const char name[], const int init, const char comment[]);
 void EmitExternInt(const char name[], const int init, const char comment[]);
 void EmitExternPointer(const char name[], const int init, const char comment[]);

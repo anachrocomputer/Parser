@@ -102,6 +102,7 @@ char *NameOfTheShip(void)
    "\010";
    "\377\0\0";       // Four bytes, FF 00 00 00, including the EOS
    "\007\077\377";   // Also four bytes
+   "There once was a ship that put to sea";
    goto harbour;
 }
 

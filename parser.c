@@ -14,6 +14,10 @@
 
 #define MAXCASES (512)   // Maximum number of case labels in a 'switch'
 
+struct StringConstant Strings[64];
+static int NextStr = 0;
+
+
 void initialise(void);
 void parse(const char fname[]);
 void parser(void);
@@ -309,8 +313,11 @@ int ParseDeclaration(struct Token *tok)
 void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, const int type)
 {
    int autoSize = 0;
+   int i;
    const int returnLabel = AllocLabel('R');
    
+   NextStr = 0;
+
    GetToken(tok);
    
    // Function's local variables
@@ -422,6 +429,12 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
    
    // Function exit sequence
    EmitFunctionExit(returnLabel);
+   
+   for (i = 0; i < NextStr; i++) {
+      EmitStaticCharArray(&Strings[i], "<anon>");
+   }
+   
+   NextStr = 0;
 }
 
 
@@ -591,7 +604,15 @@ void ParseExpression(struct Token *tok)
       }
    }
    else if (tok->token == TSTRLIT) {
-      Emit("nop", "", tok->str);
+      const int strLit = AllocLabel('S');
+      
+      Strings[NextStr].label = strLit;
+      strncpy(Strings[NextStr].str, tok->str, 256);
+      memcpy(Strings[NextStr].sValue, tok->sValue, tok->sLength);
+      Strings[NextStr].sLength = tok->sLength;
+      NextStr++;
+      
+      LoadLabelAddr(strLit, tok->str);
       GetToken(tok);
    }
    else {

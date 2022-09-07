@@ -108,6 +108,66 @@ void EmitFunctionExit(const int returnLabel)
 }
 
 
+/* EmitStaticCharArray --- emit declaration for an initialised char array or string */
+
+void EmitStaticCharArray(const struct StringConstant *sc, const char name[])
+{
+   char target[8];
+   char bytes[64];
+   int i, n;
+
+   snprintf(target, sizeof (target), "l%04d", sc->label);
+   
+   bytes[0] = '\0';
+   
+   if (sc->sLength > 7) {
+      n = 7;
+   }
+   else {
+      n = sc->sLength;
+   }
+
+   for (i = 0; i < n; i++) {
+      char hex[8];
+      
+      sprintf(hex, "$%02x", sc->sValue[i] & 0xff);
+      
+      strcat(bytes, hex);
+      
+      if (i < (n - 1)) {
+         strcat(bytes, ",");
+      }
+   }
+   
+   fprintf(Asm, "%-7s fcb  %-32s ; const char %s[%d] = %s\n", target, bytes, name, sc->sLength - 1, sc->str);
+   
+   while (i < sc->sLength) {
+      n += 7;
+      
+      if (n > sc->sLength) {
+         n = sc->sLength;
+      }
+
+      bytes[0] = '\0';
+
+      for ( ; i < n; i++) {
+         char hex[8];
+
+         sprintf(hex, "$%02x", sc->sValue[i] & 0xff);
+         
+         strcat(bytes, hex);
+         
+         if (i < (n - 1)) {
+            strcat(bytes, ",");
+         }
+
+      }
+
+      fprintf(Asm, "        fcb  %s\n", bytes);
+   }
+}
+
+
 /* EmitStaticLong --- emit declaration for a local static long int variable */
 
 void EmitStaticLong(const int label, const long int init, const char comment[])
@@ -204,6 +264,18 @@ void LoadIntConstant(const int val, const int reg, const char comment[])
       Emit("ldy", immediate, comment);
       break;
    }
+}
+
+
+/* LoadLabelAddr --- load the address of a generated label */
+
+void LoadLabelAddr(const int label, const char comment[])
+{
+   char target[8];
+
+   snprintf(target, sizeof (target), "#l%04d", label);
+   
+   Emit("ldd", target, comment);
 }
 
 
