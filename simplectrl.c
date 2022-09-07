@@ -6,6 +6,16 @@ int Sugar;
 float Rum;
 double Whale;
 
+void PutToSea(void);
+
+void PutToSea(void)
+{
+   float heading;
+   
+   Whale;
+}
+
+
 char *NameOfTheShip(void)
 {
    float heading;
@@ -13,7 +23,7 @@ char *NameOfTheShip(void)
    
    {
       33.3; // 'double' constant will generate a NOP in the assembly language
-      return 999;
+      return ("Billy O' Tea");
    }
    42;   // The only <expression> we know so far is a numeric constant, string constant, or an identifier
    for (4; Tea; Tea++)  // for-loops work but cannot have empty expressions yet
@@ -88,7 +98,7 @@ char *NameOfTheShip(void)
       "tonguing";
       return ("\0");
    }
-   Whale;
+   PutToSea();
    for ('\xff'; Whale; Whale--)
       for ('\377'; Tea; Tea++) {
          if (Sugar)

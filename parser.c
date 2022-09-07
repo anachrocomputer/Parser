@@ -590,17 +590,35 @@ void ParseExpression(struct Token *tok)
       
       // TODO: look up ID in symbol table
 
-      LoadExternInt(name, 'D', "Load int");
       GetToken(tok);
 
       if ((tok->token == TINC) || (tok->token == TDEC)) {
+         LoadExternInt(name, 'D', "Load int");
+
          if (tok->token == TINC) {
             EmitIncExternInt(name, 1);
          }
          else if (tok->token == TDEC) {
             EmitIncExternInt(name, -1);
          }
+
          GetToken(tok);
+      }
+      else if (tok->token == TOPAREN) {
+         GetToken(tok);
+
+         // Parse arguments here
+
+         if (tok->token == TCPAREN) {
+            EmitCallFunction(name, "call function");
+            GetToken(tok);
+         }
+         else {
+            Error("Expected ')' in function call");
+         }
+      }
+      else {
+         LoadExternInt(name, 'D', "Load int");
       }
    }
    else if (tok->token == TSTRLIT) {

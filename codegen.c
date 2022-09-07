@@ -542,3 +542,16 @@ void EmitCompareIntConstant(const int compare, const char comment[])
    
    Emit("cmpd", cmpArg, comment);
 }
+
+
+/* EmitCallFunction --- code to call a function */
+
+void EmitCallFunction(const char name[], const char comment[])
+{
+   char target[30];
+
+   snprintf(target, sizeof (target), "%c%s", NAME_PREFIX, name);
+
+   Emit("jsr", target, comment);
+}
+
