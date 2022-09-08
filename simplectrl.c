@@ -12,7 +12,7 @@ void PutToSea(void)
 {
    float heading;
    
-   Whale;
+   Sugar = Whale = (999);
 }
 
 
@@ -25,14 +25,14 @@ char *NameOfTheShip(void)
       33.3; // 'double' constant will generate a NOP in the assembly language
       return ("Billy O' Tea");
    }
-   42;   // The only <expression> we know so far is a numeric constant, string constant, or an identifier
-   for (4; Tea; Tea++)  // for-loops work but cannot have empty expressions yet
+   Whale = 42;
+   for (Tea = 0; Tea; Tea++)  // for-loops work but cannot have empty expressions yet
       Rum;
-   '*';
-   for (40; Rum; Rum--) {
+   Sugar = '*';
+   for (Rum = 40; Rum; Rum--) {
       if (Tea)
          break;
-      400;
+      Sugar = 400;
       if (Sugar)
          continue;
       4000;
@@ -42,7 +42,7 @@ char *NameOfTheShip(void)
    if ('\0')
       return;
    else
-      "\xff";  // String constant will generate a NOP in the assembly language
+      Tea = "\xff";
    0xff;
    do {
       123L;
@@ -99,8 +99,8 @@ char *NameOfTheShip(void)
       return ("\0");
    }
    PutToSea();
-   for ('\xff'; Whale; Whale--)
-      for ('\377'; Tea; Tea++) {
+   for (Whale = '\xff'; Whale; Whale--)
+      for (Tea = '\377'; Tea; Tea++) {
          if (Sugar)
             break;
          if (Rum)

@@ -623,6 +623,11 @@ void ParseExpression(struct Token *tok)
             Error("Expected ')' in function call");
          }
       }
+      else if (tok->token == TASSIGN) {
+         GetToken(tok);
+         ParseExpression(tok);
+         StoreScalar(stp, "Store int");
+      }
       else {
          LoadScalar(stp, "Load int");
       }
