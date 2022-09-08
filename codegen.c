@@ -176,15 +176,99 @@ void EmitStaticLong(const int label, const long int init, const char comment[])
 }
 
 
-/* LoadStaticLong --- load a static long int into register Q */
+/* LoadScalar --- load a scalar variable into D or Q */
 
-void LoadStaticLong(const int label, const char comment[])
+void LoadScalar(const struct Symbol *sym, char comment[])
 {
-   char target[8];
+   char target[MAXNAME + 1];
 
-   snprintf(target, sizeof (target), "l%04d", label);
-   
-   Emit("ldq", target, comment);
+   switch (sym->storageClass) {
+   case SCEXTERN:
+      snprintf(target, sizeof (target), "%c%s", NAME_PREFIX, sym->name);
+      break;
+   case SCSTATIC:
+      snprintf(target, sizeof (target), "l%04d", sym->label);
+      break;
+   case SCAUTO:
+      snprintf(target, sizeof (target), "%d,u", sym->fpOffset);
+      break;
+   case SCREGISTER:
+      snprintf(target, sizeof (target), "#0");
+      break;
+   }
+
+   switch (sym->type) {
+   case T_CHAR:
+      Emit("ldb", target, comment);
+      Emit("sex", "", "Sign extend to 16 bits");
+      break;
+   case T_UCHAR:
+      Emit("ldb", target, comment);
+      Emit("clra", "", "No sign extension");
+      break;
+   case T_SHORT:
+   case T_USHORT:
+   case T_INT:
+   case T_UINT:
+      Emit("ldd", target, comment);
+      break;
+   case T_LONG:
+   case T_ULONG:
+      Emit("ldq", target, comment);
+      break;
+   case T_FLOAT:
+      Emit("ldq", target, comment);
+      break;
+   case T_DOUBLE:
+      Emit("ldq", target, comment);
+      break;
+   }
+}
+
+
+/* StoreScalar --- store a scalar variable from D or Q */
+
+void StoreScalar(const struct Symbol *sym, char comment[])
+{
+   char target[MAXNAME + 1];
+
+   switch (sym->storageClass) {
+   case SCEXTERN:
+      snprintf(target, sizeof (target), "%c%s", NAME_PREFIX, sym->name);
+      break;
+   case SCSTATIC:
+      snprintf(target, sizeof (target), "l%04d", sym->label);
+      break;
+   case SCAUTO:
+      snprintf(target, sizeof (target), "%d,u", sym->fpOffset);
+      break;
+   case SCREGISTER:
+      snprintf(target, sizeof (target), "#0");
+      break;
+   }
+
+   switch (sym->type) {
+   case T_CHAR:
+   case T_UCHAR:
+      Emit("stb", target, comment);
+      break;
+   case T_SHORT:
+   case T_USHORT:
+   case T_INT:
+   case T_UINT:
+      Emit("std", target, comment);
+      break;
+   case T_LONG:
+   case T_ULONG:
+      Emit("stq", target, comment);
+      break;
+   case T_FLOAT:
+      Emit("stq", target, comment);
+      break;
+   case T_DOUBLE:
+      Emit("stq", target, comment);
+      break;
+   }
 }
 
 
@@ -349,134 +433,11 @@ void EmitExternDouble(const char name[], const double init, const char comment[]
 }
 
 
-/* LoadExternInt --- load an extern int into a given register */
-
-void LoadExternInt(const char name[], const int reg, const char comment[])
-{
-   char target[30];
-
-   snprintf(target, sizeof (target), "%c%s", NAME_PREFIX, name);
-   
-   switch (reg) {
-   case 'D':
-   case 'd':
-      Emit("ldd", target, comment);
-      break;
-   case 'X':
-   case 'x':
-      Emit("ldx", target, comment);
-      break;
-   case 'Y':
-   case 'y':
-      Emit("ldy", target, comment);
-      break;
-   }
-}
-
-
-/* StoreExternInt --- store a register into an extern int variable */
-
-void StoreExternInt(const char name[], const int reg, const char comment[])
-{
-   char target[30];
-
-   snprintf(target, sizeof (target), "%c%s", NAME_PREFIX, name);
-   
-   switch (reg) {
-   case 'D':
-   case 'd':
-      Emit("std", target, comment);
-      break;
-   case 'X':
-   case 'x':
-      Emit("stx", target, comment);
-      break;
-   case 'Y':
-   case 'y':
-      Emit("sty", target, comment);
-      break;
-   }
-}
-
-
-/* LoadStaticInt --- load a static int into a given register */
-
-void LoadStaticInt(const int label, const int reg, const char comment[])
-{
-   char target[8];
-
-   snprintf(target, sizeof (target), "l%04d", label);
-   
-   switch (reg) {
-   case 'D':
-   case 'd':
-      Emit("ldd", target, comment);
-      break;
-   case 'X':
-   case 'x':
-      Emit("ldx", target, comment);
-      break;
-   case 'Y':
-   case 'y':
-      Emit("ldy", target, comment);
-      break;
-   }
-}
-
-
-/* StoreStaticInt --- store a register into a static int variable */
-
-void StoreStaticInt(const int label, const int reg, const char comment[])
-{
-   char target[8];
-
-   snprintf(target, sizeof (target), "l%04d", label);
-   
-   switch (reg) {
-   case 'D':
-   case 'd':
-      Emit("std", target, comment);
-      break;
-   case 'X':
-   case 'x':
-      Emit("stx", target, comment);
-      break;
-   case 'Y':
-   case 'y':
-      Emit("sty", target, comment);
-      break;
-   }
-}
-
-
 /* EmitStaticChar --- emit declaration for a local static char variable */
 
 void EmitStaticChar(const int label, const int init, const char comment[])
 {
    fprintf(Asm, "l%04d   fcb  %d               ; static char %s = %d\n", label, init, comment, init);
-}
-
-
-/* LoadStaticChar --- load a local static char variable into a register */
-
-void LoadStaticChar(const int label, const int reg, const bool signExtend, const char comment[])
-{
-   char *mnem = NULL;
-   char target[8];
-   
-   switch (reg) {
-   case 'D':
-   case 'd':
-      mnem = "ldb";
-      break;
-   }
-   
-   snprintf(target, sizeof (target), "l%04d", label);
-
-   Emit(mnem, target, comment);
-   
-   if (signExtend)
-      Emit("sex", "", "Sign extend to 16 bits");
 }
 
 

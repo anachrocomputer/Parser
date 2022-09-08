@@ -1,6 +1,8 @@
 /* codegen --- code generation routines                     2022-08-12 */
 /* Copyright (c) 2022 John Honniball. All rights reserved              */
 
+#include "symtab.h"
+
 #define NOLABEL    (-1)
 
 struct StringConstant {
@@ -20,7 +22,8 @@ void EmitFunctionEntry(const char name[], const int nBytes);
 void EmitFunctionExit(const int returnLabel);
 void EmitStaticCharArray(const struct StringConstant *sc, const char name[]);
 void EmitStaticLong(const int label, const long int init, const char comment[]);
-void LoadStaticLong(const int label, const char comment[]);
+void LoadScalar(const struct Symbol *sym, char comment[]);
+void StoreScalar(const struct Symbol *sym, char comment[]);
 void EmitStaticInt(const int label, const int init, const char comment[]);
 void EmitStaticFloat(const int label, const float init, const char comment[]);
 void EmitStaticDouble(const int label, const double init, const char comment[]);
@@ -31,12 +34,7 @@ void EmitExternInt(const char name[], const int init, const char comment[]);
 void EmitExternPointer(const char name[], const int init, const char comment[]);
 void EmitExternFloat(const char name[], const float init, const char comment[]);
 void EmitExternDouble(const char name[], const double init, const char comment[]);
-void LoadExternInt(const char name[], const int reg, const char comment[]);
-void StoreExternInt(const char name[], const int reg, const char comment[]);
-void LoadStaticInt(const int label, const int reg, const char comment[]);
-void StoreStaticInt(const int label, const int reg, const char comment[]);
 void EmitStaticChar(const int label, const int init, const char comment[]);
-void LoadStaticChar(const int label, const int reg, const bool signExtend, const char comment[]);
 void EmitJump(const int label, const char comment[]);
 void EmitBranchIfEqual(const int label, const char comment[]);
 void EmitBranchNotEqual(const int label, const char comment[]);

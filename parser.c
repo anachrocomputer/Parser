@@ -8,7 +8,6 @@
 
 #include "codegen.h"
 #include "lexical.h"
-#include "symtab.h"
 
 //#define LEX_TESTER
 
@@ -141,7 +140,7 @@ int ParseDeclaration(struct Token *tok)
    case TCHAR:
    case TFLOAT:
    case TDOUBLE:
-      type = tok->token;
+      type = tok->token;   // TODO: convert to T_ type
 
       GetToken(tok);
 
@@ -584,22 +583,29 @@ void ParseExpression(struct Token *tok)
       GetToken(tok);
    }
    else if (tok->token == TID) {
-      char name[256];
+      struct Symbol tmp;
       
-      strncpy(name, tok->str, sizeof (name));
+      tmp.storageClass = SCEXTERN;
+      strncpy(tmp.name, tok->str, sizeof (tmp.name));
+      tmp.type = T_INT;
+      tmp.pLevel = 0;
+      tmp.label = 0;
+      tmp.fpOffset = 0;
+      
+      const struct Symbol *stp = &tmp;
       
       // TODO: look up ID in symbol table
 
       GetToken(tok);
 
       if ((tok->token == TINC) || (tok->token == TDEC)) {
-         LoadExternInt(name, 'D', "Load int");
+         LoadScalar(stp, "Load int");
 
          if (tok->token == TINC) {
-            EmitIncExternInt(name, 1);
+            EmitIncExternInt(tmp.name, 1);
          }
          else if (tok->token == TDEC) {
-            EmitIncExternInt(name, -1);
+            EmitIncExternInt(tmp.name, -1);
          }
 
          GetToken(tok);
@@ -610,7 +616,7 @@ void ParseExpression(struct Token *tok)
          // Parse arguments here
 
          if (tok->token == TCPAREN) {
-            EmitCallFunction(name, "call function");
+            EmitCallFunction(tmp.name, "call function");
             GetToken(tok);
          }
          else {
@@ -618,7 +624,7 @@ void ParseExpression(struct Token *tok)
          }
       }
       else {
-         LoadExternInt(name, 'D', "Load int");
+         LoadScalar(stp, "Load int");
       }
    }
    else if (tok->token == TSTRLIT) {

@@ -7,14 +7,7 @@
 
 #include "symtab.h"
 
-#define MAXNAME   (32)
 #define MAXSYMS   (256)
-
-struct Symbol {
-   char name[MAXNAME];
-   int type;
-   int pLevel;
-};
 
 static int NextSym = 0;
 static struct Symbol SymTab[MAXSYMS];
