@@ -9,7 +9,7 @@ LDFLAGS=
 AS=asm6809
 ASFLAGS=--6309
 
-all: parser ex1.hex ex1.srec
+all: parser ex1.hex ex1.srec simplefunc.hex simplefunc.srec
 
 parser.o: parser.c codegen.h lexical.h symtab.h
 	$(CC) $(CFLAGS) -o parser.o parser.c
@@ -31,3 +31,12 @@ ex1.hex: ex1.asm
 
 ex1.srec: ex1.asm
 	$(AS) $(ASFLAGS) -S -o ex1.srec -l ex1.lst ex1.asm
+
+simplefunc.asm: simplefunc.c parser
+	./parser simplefunc.c
+
+simplefunc.hex: simplefunc.asm
+	$(AS) $(ASFLAGS) -H -o simplefunc.hex -l simplefunc.lst simplefunc.asm
+
+simplefunc.srec: simplefunc.asm
+	$(AS) $(ASFLAGS) -S -o simplefunc.srec -l simplefunc.lst simplefunc.asm
