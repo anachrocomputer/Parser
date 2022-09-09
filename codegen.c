@@ -35,7 +35,15 @@ bool OpenAssemblerFile(const char fname[])
    
    fprintf(Asm, "        setdp 0\n");
    fprintf(Asm, "        org   $0400\n");
-   fprintf(Asm, "appEntry\n");
+   fprintf(Asm, "appEntry jmp  _main\n");
+   fprintf(Asm, "_vduchar tfr  b,a               ; Move char into A register\n");
+   fprintf(Asm, "         jmp  $a020             ; Send one char to the VDU\n");
+   fprintf(Asm, "_vdustr  tfr  d,x               ; Move pointer into X register\n");
+   fprintf(Asm, "         jmp  $a014             ; Print a nul-terminated string\n");
+   fprintf(Asm, "_getchar jsr  $a252             ; Get char and show cursor\n");
+   fprintf(Asm, "         tfr  a,b               ; Move returned ASCII char into LSB of D register\n");
+   fprintf(Asm, "         clra                   ; Make sure MSB is zero\n");
+   fprintf(Asm, "         rts\n");
 
    return (true);
 }

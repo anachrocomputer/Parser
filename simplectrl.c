@@ -116,3 +116,8 @@ char *NameOfTheShip(void)
    goto harbour;
 }
 
+void main(void)
+{
+   Rum = NameOfTheShip();
+}
+

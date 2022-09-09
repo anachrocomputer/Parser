@@ -58,3 +58,8 @@ void TakeOurLeaveAndGo(void)
 {
    return;
 }
+
+void main(void)
+{
+   Sail = NameOfTheShip();
+}
