@@ -17,5 +17,5 @@ struct Symbol {
 };
 
 void SymTabInit(void);
-void AddExternSymbol(const char name[], int type, int pLevel);
-int LookUpExternSymbol(const char name[]);
+bool AddExternSymbol(const struct Symbol *sym);
+struct Symbol *LookUpExternSymbol(const char name[]);

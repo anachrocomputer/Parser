@@ -1,12 +1,17 @@
 /* Some simple function calls which the code so far is capable of parsing */
 
-// Scalars
+// Scalars, all global until we get 'auto', 'static' and 'register' working
 int Wave;
 char *Bow;
 char Tea;
 int Sugar;
 float Rum;
 double Whale;
+
+// Assembler-coded functions in the run-time library
+void vduchar(void);
+void vdustr(void);
+int getchar(void);
 
 void PutToSea(void);
 

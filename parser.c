@@ -21,7 +21,7 @@ void initialise(void);
 void parse(const char fname[]);
 void parser(void);
 int ParseDeclaration(struct Token *tok);
-void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, const int type);
+void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn);
 void ParseStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel);
 void ParseReturn(struct Token *tok, const int returnLabel);
 void ParseCompoundStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel);
@@ -119,15 +119,19 @@ void parser(void)
 
 int ParseDeclaration(struct Token *tok)
 {
-   char name[256];
+   struct Symbol sym;
    int type;
-   int pLevel;
    int iValue;
    int iType;
    
-   name[0] = '\0';
    type = 0;
-   pLevel = 0;
+   
+   sym.name[0] = '\0';
+   sym.storageClass = SCEXTERN;
+   sym.type = T_INT;
+   sym.pLevel = 0;
+   sym.label = NOLABEL;
+   sym.fpOffset = 0;
    
    switch (tok->token) {
    case TEOF:
@@ -140,17 +144,17 @@ int ParseDeclaration(struct Token *tok)
    case TCHAR:
    case TFLOAT:
    case TDOUBLE:
-      type = tok->token;   // TODO: convert to T_ type
+      type = tok->token;
 
       GetToken(tok);
 
       while (tok->token == TSTAR) {
-         pLevel++;
+         sym.pLevel++;
          GetToken(tok);
       }
       
       if (tok->token == TID) {
-         strcpy(name, tok->str);
+         strncpy(sym.name, tok->str, MAXNAME);
          GetToken(tok);
       }
       else {
@@ -161,43 +165,49 @@ int ParseDeclaration(struct Token *tok)
       case TASSIGN:  // Scalar initialiser
          GetToken(tok);
 
-         AddExternSymbol(name, type, pLevel);
+         if (AddExternSymbol(&sym) == false) {
+            Error("Symbol '%s' is already declared", sym.name);
+         }
          
-         if (pLevel == 0) {
+         if (sym.pLevel == 0) {
             switch (type) {
             case TCHAR:
+               sym.type = T_CHAR;
                if (ParseConstIntExpr(tok, &iValue, &iType)) {
-                  printf("Initialised char '%s' %d\n", name, iValue);
-                  EmitExternChar(name, iValue, "char");
+                  printf("Initialised char '%s' %d\n", sym.name, iValue);
+                  EmitExternChar(sym.name, iValue, "char");
                }
                else {
                   Error("Expected integer constant after '='");
                }
                break;
             case TINT:
+               sym.type = T_INT;
                if (ParseConstIntExpr(tok, &iValue, &iType)) {
-                  printf("Initialised int '%s' %d\n", name, iValue);
-                  EmitExternInt(name, iValue, "int");
+                  printf("Initialised int '%s' %d\n", sym.name, iValue);
+                  EmitExternInt(sym.name, iValue, "int");
                }
                else {
                   Error("Expected integer constant after '='");
                }
                break;
             case TFLOAT:
-               printf("Initialised float '%s' '%s'\n", name, tok->str);
-               EmitExternFloat(name, tok->fValue, "float");
+               sym.type = T_FLOAT;
+               printf("Initialised float '%s' '%s'\n", sym.name, tok->str);
+               EmitExternFloat(sym.name, tok->fValue, "float");
                GetToken(tok);
                break;
             case TDOUBLE:
-               printf("Initialised double '%s' '%s'\n", name, tok->str);
-               EmitExternDouble(name, tok->fValue, "double");
+               sym.type = T_DOUBLE;
+               printf("Initialised double '%s' '%s'\n", sym.name, tok->str);
+               EmitExternDouble(sym.name, tok->fValue, "double");
                GetToken(tok);
                break;
             }
          }
          else {
-            printf("Initialised pointer '%s' '%s'\n", name, tok->str);
-            EmitExternPointer(name, tok->iValue, "pointer");
+            printf("Initialised pointer '%s' '%s'\n", sym.name, tok->str);
+            EmitExternPointer(sym.name, tok->iValue, "pointer");
             GetToken(tok);
          }
          
@@ -226,27 +236,32 @@ int ParseDeclaration(struct Token *tok)
          }
          
          if (tok->token == TCPAREN) {
-            if (pLevel == 0) {
+            if (sym.pLevel == 0) {
                switch (type) {
                case TVOID:
-                  printf("Function '%s()' returning void\n", name);
+                  sym.type = T_VOID;
+                  printf("Function '%s()' returning void\n", sym.name);
                   break;
                case TCHAR:
-                  printf("Function '%s()' returning char\n", name);
+                  sym.type = T_INT;
+                  printf("Function '%s()' returning char\n", sym.name);
                   break;
                case TINT:
-                  printf("Function '%s()' returning int\n", name);
+                  sym.type = T_INT;
+                  printf("Function '%s()' returning int\n", sym.name);
                   break;
                case TFLOAT:
-                  printf("Function '%s()' returning float\n", name);
+                  sym.type = T_FLOAT;
+                  printf("Function '%s()' returning float\n", sym.name);
                   break;
                case TDOUBLE:
-                  printf("Function '%s()' returning double\n", name);
+                  sym.type = T_DOUBLE;
+                  printf("Function '%s()' returning double\n", sym.name);
                   break;
                }
             }
             else {
-               printf("Function '%s()' returning pointer\n", name);
+               printf("Function '%s()' returning pointer\n", sym.name);
             }
          }
          else {
@@ -255,9 +270,14 @@ int ParseDeclaration(struct Token *tok)
 
          GetToken(tok);
 
+         if (AddExternSymbol(&sym) == false) {
+            // Functions may already have prototypes or K&R-style declarations
+            //Error("Symbol '%s' is already declared", sym.name);
+         }
+
          if (tok->token == TOBRACE) {
             PrintSyntax("<function_definition>\n");
-            ParseFunctionBody(tok, name, pLevel, type);
+            ParseFunctionBody(tok, &sym);
          }
          else {
             ParseSemi(tok, "in function declaration");
@@ -265,31 +285,33 @@ int ParseDeclaration(struct Token *tok)
 
          break;
       case TSEMI:    // Uninitialised scalar
-         AddExternSymbol(name, type, pLevel);
+         if (AddExternSymbol(&sym) == false) {
+            Error("Symbol '%s' is already declared", sym.name);
+         }
 
-         if (pLevel == 0) {
+         if (sym.pLevel == 0) {
             switch (type) {
             case TCHAR:
-               printf("Uninitialised char '%s'\n", name);
-               EmitExternChar(name, 0, "char");
+               printf("Uninitialised char '%s'\n", sym.name);
+               EmitExternChar(sym.name, 0, "char");
                break;
             case TINT:
-               printf("Uninitialised int '%s'\n", name);
-               EmitExternInt(name, 0, "int");
+               printf("Uninitialised int '%s'\n", sym.name);
+               EmitExternInt(sym.name, 0, "int");
                break;
             case TFLOAT:
-               printf("Uninitialised float '%s'\n", name);
-               EmitExternFloat(name, 0.0f, "float");
+               printf("Uninitialised float '%s'\n", sym.name);
+               EmitExternFloat(sym.name, 0.0f, "float");
                break;
             case TDOUBLE:
-               printf("Uninitialised double '%s'\n", name);
-               EmitExternDouble(name, 0.0, "double");
+               printf("Uninitialised double '%s'\n", sym.name);
+               EmitExternDouble(sym.name, 0.0, "double");
                break;
             }
          }
          else {
-            printf("Uninitialised pointer '%s'\n", name);
-            EmitExternPointer(name, 0, "pointer");
+            printf("Uninitialised pointer '%s'\n", sym.name);
+            EmitExternPointer(sym.name, 0, "pointer");
          }
          break;
       default:
@@ -309,7 +331,7 @@ int ParseDeclaration(struct Token *tok)
 
 /* ParseFunctionBody --- parse the body of a function */
 
-void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, const int type)
+void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
 {
    int autoSize = 0;
    int i;
@@ -417,7 +439,7 @@ void ParseFunctionBody(struct Token *tok, const char name[], const int pLevel, c
    
    // Function entry sequence
    printf("Size of 'auto' variables: %d\n", autoSize);
-   EmitFunctionEntry(name, autoSize);
+   EmitFunctionEntry(fn->name, autoSize);
 
    // Function's executable code
    while (tok->token != TCBRACE) {
@@ -592,9 +614,11 @@ void ParseExpression(struct Token *tok)
       tmp.label = 0;
       tmp.fpOffset = 0;
       
-      const struct Symbol *stp = &tmp;
+      const struct Symbol *stp = LookUpExternSymbol(tok->str);
       
-      // TODO: look up ID in symbol table
+      if (stp == NULL) {
+         Error("Undeclared identifier: %s", tok->str);
+      }
 
       GetToken(tok);
 

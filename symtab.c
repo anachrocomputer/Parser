@@ -22,21 +22,42 @@ void SymTabInit(void)
 
 /* AddExternSymbol --- add a symbol to the table of 'extern's */
 
-void AddExternSymbol(const char name[], int type, int pLevel)
+bool AddExternSymbol(const struct Symbol *sym)
 {
-   strncpy(SymTab[NextSym].name, name, MAXNAME);
-   SymTab[NextSym].type = type;
-   SymTab[NextSym].pLevel = pLevel;
+   int i;
+   
+   for (i = 0; i < NextSym; i++) {
+      if (strcmp(SymTab[i].name, sym->name) == 0) {
+         return (false);
+      }
+   }
+
+   SymTab[NextSym].storageClass = sym->storageClass;
+   strncpy(SymTab[NextSym].name, sym->name, MAXNAME);
+   SymTab[NextSym].type = sym->type;
+   SymTab[NextSym].pLevel = sym->pLevel;
+   SymTab[NextSym].label = sym->label;
+   SymTab[NextSym].fpOffset = sym->fpOffset;
    
    NextSym++;
+   
+   return (true);
 }
 
 
 /* LookUpExternSymbol --- look for a symbol in the table of 'extern's */
 
-int LookUpExternSymbol(const char name[])
+struct Symbol *LookUpExternSymbol(const char name[])
 {
-   return (0);
+   int i;
+   
+   for (i = 0; i < NextSym; i++) {
+      if (strcmp(SymTab[i].name, name) == 0) {
+         return (&SymTab[i]);
+      }
+   }
+
+   return (NULL);
 }
 
 
