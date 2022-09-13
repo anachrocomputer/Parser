@@ -387,73 +387,76 @@ void LoadLabelAddr(const int label, const char comment[])
 }
 
 
-/* EmitExternChar --- emit declaration for an extern char variable */
+/* EmitExternScalar --- emit declaration for an extern scalar variable */
 
-void EmitExternChar(const char name[], const int init, const char comment[])
+void EmitExternScalar(const struct Symbol *const sym, const int init, const double fInit)
 {
-   fprintf(Asm, "%c%-30s fcb  %d     ; %s\n", NAME_PREFIX, name, init, comment);
-}
-
-
-/* EmitExternInt --- emit declaration for an extern int variable */
-
-void EmitExternInt(const char name[], const int init, const char comment[])
-{
-   fprintf(Asm, "%c%-30s fdb  %d     ; %s\n", NAME_PREFIX, name, init, comment);
-}
-
-
-/* EmitExternPointer --- emit declaration for an extern pointer variable */
-
-void EmitExternPointer(const char name[], const int init, const char comment[])
-{
-   fprintf(Asm, "%c%-30s fdb  %d     ; %s\n", NAME_PREFIX, name, init, comment);
-}
-
-
-/* EmitExternFloat --- emit declaration for an extern float variable */
-
-void EmitExternFloat(const char name[], const float init, const char comment[])
-{
-   int b1, b2, b3, b4;
+   char name[MAXNAME + 1];
+   int b1, b2, b3, b4, b5, b6, b7, b8;
    union {
       float f;
       unsigned char b[4];
-   } v;
-   
-   v.f = init;
-   
-   b1 = v.b[3];   // 6809 is big-endian
-   b2 = v.b[2];
-   b3 = v.b[1];
-   b4 = v.b[0];
-
-   fprintf(Asm, "%c%-30s fcb  %d,%d,%d,%d ; %g %s\n", NAME_PREFIX, name, b1, b2, b3, b4, init, comment);
-}
-
-
-/* EmitExternDouble --- emit declaration for an extern double variable */
-
-void EmitExternDouble(const char name[], const double init, const char comment[])
-{
-   int b1, b2, b3, b4, b5, b6, b7, b8;
+   } f;
    union {
       double d;
       unsigned char b[4];
-   } v;
+   } d;
    
-   v.d = init;
+   if (sym->storageClass == SCEXTERN) {
+      snprintf(name, sizeof (name), "%c%s", NAME_PREFIX, sym->name);
+   }
+   else if (sym->storageClass == SCSTATIC) {
+      snprintf(name, sizeof (name), "l%04d", sym->label);
+   }
+   else {
+      fprintf(stderr, "Only 'extern' or 'static' is valid\n");
+   }
    
-   b1 = v.b[7];   // 6809 is big-endian
-   b2 = v.b[6];
-   b3 = v.b[5];
-   b4 = v.b[4];
-   b5 = v.b[3];
-   b6 = v.b[2];
-   b7 = v.b[1];
-   b8 = v.b[0];
-   
-   fprintf(Asm, "%c%-30s fcb  %d,%d,%d,%d,%d,%d,%d,%d ; %g %s\n", NAME_PREFIX, name, b1, b2, b3, b4, b5, b6, b7, b8, init, comment);
+   if (sym->pLevel == 0) {
+      switch (sym->type) {
+      case T_CHAR:
+      case T_UCHAR:
+         fprintf(Asm, "%-30s  fcb  %d      ; char %s = %d\n", name, init, sym->name, init);
+         break;
+      case T_SHORT:
+      case T_USHORT:
+      case T_INT:
+      case T_UINT:
+         fprintf(Asm, "%-30s  fdb  %d      ; int %s = %d\n", name, init, sym->name, init);
+         break;
+      case T_LONG:
+      case T_ULONG:
+         fprintf(Asm, "%-30s  fqb  %d      ; long int %s = %d\n", name, init, sym->name, init);
+         break;
+      case T_FLOAT:
+         f.f = fInit;
+         
+         b1 = f.b[3];   // 6809 is big-endian
+         b2 = f.b[2];
+         b3 = f.b[1];
+         b4 = f.b[0];
+
+         fprintf(Asm, "%-30s  fcb  %d,%d,%d,%d         ; float %s = %g\n", name, b1, b2, b3, b4, sym->name, fInit);
+         break;
+      case T_DOUBLE:
+         d.d = fInit;
+         
+         b1 = d.b[7];   // 6809 is big-endian
+         b2 = d.b[6];
+         b3 = d.b[5];
+         b4 = d.b[4];
+         b5 = d.b[3];
+         b6 = d.b[2];
+         b7 = d.b[1];
+         b8 = d.b[0];
+
+         fprintf(Asm, "%-30s  fcb  %d,%d,%d,%d,%d,%d,%d,%d ; double %s = %g\n", name, b1, b2, b3, b4, b5, b6, b7, b8, sym->name, fInit);
+         break;
+      }
+   }
+   else {
+      fprintf(Asm, "%-30s  fdb  %d     ; pointer %s = %d\n", name, init, sym->name, init);
+   }
 }
 
 
@@ -521,7 +524,7 @@ void EmitIncScalar(const struct Symbol *const sym, const int amount)
          Emit("dec", target, "dec char");
       }
       else {
-         Error("Inc/Dec by more than 1");
+         fprintf(stderr, "Inc/Dec by more than 1\n");
       }
       break;
    case T_SHORT:

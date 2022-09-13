@@ -171,7 +171,7 @@ int ParseDeclaration(struct Token *tok)
                sym.type = T_CHAR;
                if (ParseConstIntExpr(tok, &iValue, &iType)) {
                   printf("Initialised char '%s' %d\n", sym.name, iValue);
-                  EmitExternChar(sym.name, iValue, "char");
+                  EmitExternScalar(&sym, iValue, 0.0);
                }
                else {
                   Error("Expected integer constant after '='");
@@ -181,7 +181,7 @@ int ParseDeclaration(struct Token *tok)
                sym.type = T_INT;
                if (ParseConstIntExpr(tok, &iValue, &iType)) {
                   printf("Initialised int '%s' %d\n", sym.name, iValue);
-                  EmitExternInt(sym.name, iValue, "int");
+                  EmitExternScalar(&sym, iValue, 0.0);
                }
                else {
                   Error("Expected integer constant after '='");
@@ -190,20 +190,20 @@ int ParseDeclaration(struct Token *tok)
             case TFLOAT:
                sym.type = T_FLOAT;
                printf("Initialised float '%s' '%s'\n", sym.name, tok->str);
-               EmitExternFloat(sym.name, tok->fValue, "float");
+               EmitExternScalar(&sym, 0, tok->fValue);
                GetToken(tok);
                break;
             case TDOUBLE:
                sym.type = T_DOUBLE;
                printf("Initialised double '%s' '%s'\n", sym.name, tok->str);
-               EmitExternDouble(sym.name, tok->fValue, "double");
+               EmitExternScalar(&sym, 0, tok->fValue);
                GetToken(tok);
                break;
             }
          }
          else {
             printf("Initialised pointer '%s' '%s'\n", sym.name, tok->str);
-            EmitExternPointer(sym.name, tok->iValue, "pointer");
+            EmitExternScalar(&sym, tok->iValue, 0.0);
             GetToken(tok);
          }
          
@@ -290,29 +290,29 @@ int ParseDeclaration(struct Token *tok)
             case TCHAR:
                sym.type = T_CHAR;
                printf("Uninitialised char '%s'\n", sym.name);
-               EmitExternChar(sym.name, 0, "char");
+               EmitExternScalar(&sym, 0, 0.0);
                break;
             case TINT:
                sym.type = T_INT;
                printf("Uninitialised int '%s'\n", sym.name);
-               EmitExternInt(sym.name, 0, "int");
+               EmitExternScalar(&sym, 0, 0.0);
                break;
             case TFLOAT:
                sym.type = T_FLOAT;
                printf("Uninitialised float '%s'\n", sym.name);
-               EmitExternFloat(sym.name, 0.0f, "float");
+               EmitExternScalar(&sym, 0, 0.0);
                break;
             case TDOUBLE:
                sym.type = T_DOUBLE;
                printf("Uninitialised double '%s'\n", sym.name);
-               EmitExternDouble(sym.name, 0.0, "double");
+               EmitExternScalar(&sym, 0, 0.0);
                break;
             }
          }
          else {
             sym.type = T_INT;
             printf("Uninitialised pointer '%s'\n", sym.name);
-            EmitExternPointer(sym.name, 0, "pointer");
+            EmitExternScalar(&sym, 0, 0.0);
          }
 
          if (AddExternSymbol(&sym) == false) {
