@@ -165,10 +165,6 @@ int ParseDeclaration(struct Token *tok)
       case TASSIGN:  // Scalar initialiser
          GetToken(tok);
 
-         if (AddExternSymbol(&sym) == false) {
-            Error("Symbol '%s' is already declared", sym.name);
-         }
-         
          if (sym.pLevel == 0) {
             switch (type) {
             case TCHAR:
@@ -209,6 +205,10 @@ int ParseDeclaration(struct Token *tok)
             printf("Initialised pointer '%s' '%s'\n", sym.name, tok->str);
             EmitExternPointer(sym.name, tok->iValue, "pointer");
             GetToken(tok);
+         }
+         
+         if (AddExternSymbol(&sym) == false) {
+            Error("Symbol '%s' is already declared", sym.name);
          }
          
          ParseSemi(tok, "in declaration");
@@ -285,33 +285,38 @@ int ParseDeclaration(struct Token *tok)
 
          break;
       case TSEMI:    // Uninitialised scalar
-         if (AddExternSymbol(&sym) == false) {
-            Error("Symbol '%s' is already declared", sym.name);
-         }
-
          if (sym.pLevel == 0) {
             switch (type) {
             case TCHAR:
+               sym.type = T_CHAR;
                printf("Uninitialised char '%s'\n", sym.name);
                EmitExternChar(sym.name, 0, "char");
                break;
             case TINT:
+               sym.type = T_INT;
                printf("Uninitialised int '%s'\n", sym.name);
                EmitExternInt(sym.name, 0, "int");
                break;
             case TFLOAT:
+               sym.type = T_FLOAT;
                printf("Uninitialised float '%s'\n", sym.name);
                EmitExternFloat(sym.name, 0.0f, "float");
                break;
             case TDOUBLE:
+               sym.type = T_DOUBLE;
                printf("Uninitialised double '%s'\n", sym.name);
                EmitExternDouble(sym.name, 0.0, "double");
                break;
             }
          }
          else {
+            sym.type = T_INT;
             printf("Uninitialised pointer '%s'\n", sym.name);
             EmitExternPointer(sym.name, 0, "pointer");
+         }
+
+         if (AddExternSymbol(&sym) == false) {
+            Error("Symbol '%s' is already declared", sym.name);
          }
          break;
       default:
@@ -623,13 +628,13 @@ void ParseExpression(struct Token *tok)
       GetToken(tok);
 
       if ((tok->token == TINC) || (tok->token == TDEC)) {
-         LoadScalar(stp, "Load int");
+         LoadScalar(stp, "Load scalar");
 
          if (tok->token == TINC) {
-            EmitIncExternInt(tmp.name, 1);
+            EmitIncScalar(stp, 1);
          }
          else if (tok->token == TDEC) {
-            EmitIncExternInt(tmp.name, -1);
+            EmitIncScalar(stp, -1);
          }
 
          GetToken(tok);
@@ -650,10 +655,10 @@ void ParseExpression(struct Token *tok)
       else if (tok->token == TASSIGN) {
          GetToken(tok);
          ParseExpression(tok);
-         StoreScalar(stp, "Store int");
+         StoreScalar(stp, "Store scalar");
       }
       else {
-         LoadScalar(stp, "Load int");
+         LoadScalar(stp, "Load scalar");
       }
    }
    else if (tok->token == TSTRLIT) {

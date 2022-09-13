@@ -12,7 +12,9 @@ void PutToSea(void)
 {
    float heading;
    
+   Tea++;
    Sugar = Whale = (999);
+   Tea--;
 }
 
 

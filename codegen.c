@@ -184,26 +184,52 @@ void EmitStaticLong(const int label, const long int init, const char comment[])
 }
 
 
+/* GenTargetOperand --- generate the assembler operand to address a scalar variable */
+
+static void GenTargetOperand(const struct Symbol *const sym, const int offset, char target[])
+{
+   if (offset == 0) {
+      switch (sym->storageClass) {
+      case SCEXTERN:
+         snprintf(target, MAXNAME + 1, "%c%s", NAME_PREFIX, sym->name);
+         break;
+      case SCSTATIC:
+         snprintf(target, MAXNAME + 1, "l%04d", sym->label);
+         break;
+      case SCAUTO:
+         snprintf(target, MAXNAME + 1, "%d,u", sym->fpOffset);
+         break;
+      case SCREGISTER:
+         snprintf(target, MAXNAME + 1, "#0");
+         break;
+      }
+   }
+   else {
+      switch (sym->storageClass) {
+      case SCEXTERN:
+         snprintf(target, MAXNAME + 1, "%c%s+%d", NAME_PREFIX, sym->name, offset);
+         break;
+      case SCSTATIC:
+         snprintf(target, MAXNAME + 1, "l%04d+%d", sym->label, offset);
+         break;
+      case SCAUTO:
+         snprintf(target, MAXNAME + 1, "%d,u", sym->fpOffset + offset);
+         break;
+      case SCREGISTER:
+         snprintf(target, MAXNAME + 1, "#0");
+         break;
+      }
+   }
+}
+
+
 /* LoadScalar --- load a scalar variable into D or Q */
 
-void LoadScalar(const struct Symbol *sym, char comment[])
+void LoadScalar(const struct Symbol *const sym, char comment[])
 {
    char target[MAXNAME + 1];
 
-   switch (sym->storageClass) {
-   case SCEXTERN:
-      snprintf(target, sizeof (target), "%c%s", NAME_PREFIX, sym->name);
-      break;
-   case SCSTATIC:
-      snprintf(target, sizeof (target), "l%04d", sym->label);
-      break;
-   case SCAUTO:
-      snprintf(target, sizeof (target), "%d,u", sym->fpOffset);
-      break;
-   case SCREGISTER:
-      snprintf(target, sizeof (target), "#0");
-      break;
-   }
+   GenTargetOperand(sym, 0, target);
 
    switch (sym->type) {
    case T_CHAR:
@@ -229,6 +255,7 @@ void LoadScalar(const struct Symbol *sym, char comment[])
       break;
    case T_DOUBLE:
       Emit("ldq", target, comment);
+      Emit("nop", "", "How to load low 32 bits?");
       break;
    }
 }
@@ -236,24 +263,11 @@ void LoadScalar(const struct Symbol *sym, char comment[])
 
 /* StoreScalar --- store a scalar variable from D or Q */
 
-void StoreScalar(const struct Symbol *sym, char comment[])
+void StoreScalar(const struct Symbol *const sym, char comment[])
 {
    char target[MAXNAME + 1];
 
-   switch (sym->storageClass) {
-   case SCEXTERN:
-      snprintf(target, sizeof (target), "%c%s", NAME_PREFIX, sym->name);
-      break;
-   case SCSTATIC:
-      snprintf(target, sizeof (target), "l%04d", sym->label);
-      break;
-   case SCAUTO:
-      snprintf(target, sizeof (target), "%d,u", sym->fpOffset);
-      break;
-   case SCREGISTER:
-      snprintf(target, sizeof (target), "#0");
-      break;
-   }
+   GenTargetOperand(sym, 0, target);
 
    switch (sym->type) {
    case T_CHAR:
@@ -275,6 +289,8 @@ void StoreScalar(const struct Symbol *sym, char comment[])
       break;
    case T_DOUBLE:
       Emit("stq", target, comment);
+      GenTargetOperand(sym, 4, target);
+      Emit("stq", target, "Store low 32 bits");
       break;
    }
 }
@@ -485,19 +501,48 @@ void EmitBranchNotEqual(const int label, const char comment[])
 }
 
 
-/* EmitIncExternInt --- emit an INC for an extern int variable */
+/* EmitIncScalar --- emit an INC for a scalar variable */
 
-void EmitIncExternInt(const char name[], const int amount)
+void EmitIncScalar(const struct Symbol *const sym, const int amount)
 {
-   char target[30];
+   char target[MAXNAME + 1];
    char op[30];
 
-   snprintf(target, sizeof (target), "%c%s", NAME_PREFIX, name);
+   GenTargetOperand(sym, 0, target);
    snprintf(op, sizeof (op), "%d,x", amount);
 
-   Emit("ldx", target, "inc");
-   Emit("leax", op, "inc");
-   Emit("stx", target, "inc");
+   switch (sym->type) {
+   case T_CHAR:
+   case T_UCHAR:
+      if (amount == 1) {
+         Emit("inc", target, "inc char");
+      }
+      else if (amount == -1) {
+         Emit("dec", target, "dec char");
+      }
+      else {
+         Error("Inc/Dec by more than 1");
+      }
+      break;
+   case T_SHORT:
+   case T_USHORT:
+   case T_INT:
+   case T_UINT:
+      Emit("ldx", target, "inc");
+      Emit("leax", op, "inc");
+      Emit("stx", target, "inc");
+      break;
+   case T_LONG:
+   case T_ULONG:
+      Emit("nop", "", "inc long");
+      break;
+   case T_FLOAT:
+      Emit("nop", "", "inc float");
+      break;
+   case T_DOUBLE:
+      Emit("nop", "", "inc double");
+      break;
+   }
 }
 
 
