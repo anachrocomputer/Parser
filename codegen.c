@@ -176,14 +176,6 @@ void EmitStaticCharArray(const struct StringConstant *sc, const char name[])
 }
 
 
-/* EmitStaticLong --- emit declaration for a local static long int variable */
-
-void EmitStaticLong(const int label, const long int init, const char comment[])
-{
-   fprintf(Asm, "l%04d   fqb  %ld       ; static long int %s = %ld\n", label, init, comment, init);
-}
-
-
 /* GenTargetOperand --- generate the assembler operand to address a scalar variable */
 
 static void GenTargetOperand(const struct Symbol *const sym, const int offset, char target[])
@@ -296,60 +288,6 @@ void StoreScalar(const struct Symbol *const sym, char comment[])
 }
 
 
-/* EmitStaticInt --- emit declaration for a local static int variable */
-
-void EmitStaticInt(const int label, const int init, const char comment[])
-{
-   fprintf(Asm, "l%04d   fdb  %d               ; static int %s = %d\n", label, init, comment, init);
-}
-
-
-/* EmitStaticFloat --- emit declaration for a local static float variable */
-
-void EmitStaticFloat(const int label, const float init, const char comment[])
-{
-   int b1, b2, b3, b4;
-   union {
-      float f;
-      unsigned char b[4];
-   } v;
-   
-   v.f = init;
-   
-   b1 = v.b[3];   // 6809 is big-endian
-   b2 = v.b[2];
-   b3 = v.b[1];
-   b4 = v.b[0];
-
-   fprintf(Asm, "l%04d   fcb  %d,%d,%d,%d         ; static float %s = %g\n", label, b1, b2, b3, b4, comment, init);
-}
-
-
-/* EmitStaticDouble --- emit declaration for a local static double variable */
-
-void EmitStaticDouble(const int label, const double init, const char comment[])
-{
-   int b1, b2, b3, b4, b5, b6, b7, b8;
-   union {
-      double d;
-      unsigned char b[4];
-   } v;
-   
-   v.d = init;
-   
-   b1 = v.b[7];   // 6809 is big-endian
-   b2 = v.b[6];
-   b3 = v.b[5];
-   b4 = v.b[4];
-   b5 = v.b[3];
-   b6 = v.b[2];
-   b7 = v.b[1];
-   b8 = v.b[0];
-
-   fprintf(Asm, "l%04d   fcb  %d,%d,%d,%d,%d,%d,%d,%d ; static double %s = %g\n", label, b1, b2, b3, b4, b5, b6, b7, b8, comment, init);
-}
-
-
 /* LoadIntConstant --- load an int constant into a given register */
 
 void LoadIntConstant(const int val, const int reg, const char comment[])
@@ -392,6 +330,7 @@ void LoadLabelAddr(const int label, const char comment[])
 void EmitExternScalar(const struct Symbol *const sym, const int init, const double fInit)
 {
    char name[MAXNAME + 1];
+   char *storage = "";
    int b1, b2, b3, b4, b5, b6, b7, b8;
    union {
       float f;
@@ -407,6 +346,7 @@ void EmitExternScalar(const struct Symbol *const sym, const int init, const doub
    }
    else if (sym->storageClass == SCSTATIC) {
       snprintf(name, sizeof (name), "l%04d", sym->label);
+      storage = "static ";
    }
    else {
       fprintf(stderr, "Only 'extern' or 'static' is valid\n");
@@ -416,17 +356,17 @@ void EmitExternScalar(const struct Symbol *const sym, const int init, const doub
       switch (sym->type) {
       case T_CHAR:
       case T_UCHAR:
-         fprintf(Asm, "%-30s  fcb  %d      ; char %s = %d\n", name, init, sym->name, init);
+         fprintf(Asm, "%-30s  fcb  %d      ; %schar %s = %d\n", name, init, storage, sym->name, init);
          break;
       case T_SHORT:
       case T_USHORT:
       case T_INT:
       case T_UINT:
-         fprintf(Asm, "%-30s  fdb  %d      ; int %s = %d\n", name, init, sym->name, init);
+         fprintf(Asm, "%-30s  fdb  %d      ; %sint %s = %d\n", name, init, storage, sym->name, init);
          break;
       case T_LONG:
       case T_ULONG:
-         fprintf(Asm, "%-30s  fqb  %d      ; long int %s = %d\n", name, init, sym->name, init);
+         fprintf(Asm, "%-30s  fqb  %d      ; %slong int %s = %d\n", name, init, storage, sym->name, init);
          break;
       case T_FLOAT:
          f.f = fInit;
@@ -436,7 +376,7 @@ void EmitExternScalar(const struct Symbol *const sym, const int init, const doub
          b3 = f.b[1];
          b4 = f.b[0];
 
-         fprintf(Asm, "%-30s  fcb  %d,%d,%d,%d         ; float %s = %g\n", name, b1, b2, b3, b4, sym->name, fInit);
+         fprintf(Asm, "%-30s  fcb  %d,%d,%d,%d         ; %sfloat %s = %g\n", name, b1, b2, b3, b4, storage, sym->name, fInit);
          break;
       case T_DOUBLE:
          d.d = fInit;
@@ -450,21 +390,13 @@ void EmitExternScalar(const struct Symbol *const sym, const int init, const doub
          b7 = d.b[1];
          b8 = d.b[0];
 
-         fprintf(Asm, "%-30s  fcb  %d,%d,%d,%d,%d,%d,%d,%d ; double %s = %g\n", name, b1, b2, b3, b4, b5, b6, b7, b8, sym->name, fInit);
+         fprintf(Asm, "%-30s  fcb  %d,%d,%d,%d,%d,%d,%d,%d ; %sdouble %s = %g\n", name, b1, b2, b3, b4, b5, b6, b7, b8, storage, sym->name, fInit);
          break;
       }
    }
    else {
-      fprintf(Asm, "%-30s  fdb  %d     ; pointer %s = %d\n", name, init, sym->name, init);
+      fprintf(Asm, "%-30s  fdb  %d     ; %spointer %s = %d\n", name, init, storage, sym->name, init);
    }
-}
-
-
-/* EmitStaticChar --- emit declaration for a local static char variable */
-
-void EmitStaticChar(const int label, const int init, const char comment[])
-{
-   fprintf(Asm, "l%04d   fcb  %d               ; static char %s = %d\n", label, init, comment, init);
 }
 
 

@@ -351,20 +351,26 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
           (tok->token == TFLOAT) || (tok->token == TDOUBLE) ||
           (tok->token == TSTATIC) || (tok->token == TAUTO) ||
           (tok->token == TREGISTER)) {
-      char name[256];
+      struct Symbol sym;
       int type;
-      int pLevel = 0;
-      bool isStatic = false;
+      
+      sym.storageClass = SCAUTO;
+      sym.name[0] = '\0';
+      sym.type = T_INT;
+      sym.pLevel = 0;
+      sym.label = NOLABEL;
+      sym.fpOffset = 0;
       
       if (tok->token == TSTATIC) {           // Accept 'static' storage class
          GetToken(tok);
-         isStatic = true;
+         sym.storageClass = SCSTATIC;
       }
       else if (tok->token == TAUTO) {        // Ignore 'auto' storage class
          GetToken(tok);
       }
-      else if (tok->token == TREGISTER) {    // Ignore 'register' storage class
+      else if (tok->token == TREGISTER) {    // Accept 'register' storage class
          GetToken(tok);
+         sym.storageClass = SCREGISTER;
       }
       
       type = tok->token;   // Yikes, we're assuming that the next token is a valid type!
@@ -372,63 +378,70 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
       GetToken(tok);
 
       while (tok->token == TSTAR) {
-         pLevel++;
+         sym.pLevel++;
          GetToken(tok);
       }
          
       if (tok->token == TID) {
-         strcpy(name, tok->str);
-         if (isStatic) {
-            const int slabel = AllocLabel('S');
+         strncpy(sym.name, tok->str, MAXNAME);
+         if (sym.storageClass == SCSTATIC) {
+            sym.label = AllocLabel('S');
             
-            if (pLevel == 0) {
+            if (sym.pLevel == 0) {
                switch (type) {
                case TCHAR:
-                  printf("Static 'char' variable '%s'\n", name);
-                  EmitStaticChar(slabel, 0, name);
+                  sym.type = T_CHAR;
+                  printf("Static 'char' variable '%s'\n", sym.name);
                   break;
                case TINT:
-                  printf("Static 'int' variable '%s'\n", name);
-                  EmitStaticInt(slabel, 0, name);
+                  sym.type = T_INT;
+                  printf("Static 'int' variable '%s'\n", sym.name);
                   break;
                case TFLOAT:
-                  printf("Static 'float' variable '%s'\n", name);
-                  EmitStaticFloat(slabel, 0.0f, name);
+                  sym.type = T_FLOAT;
+                  printf("Static 'float' variable '%s'\n", sym.name);
                   break;
                case TDOUBLE:
-                  printf("Static 'double' variable '%s'\n", name);
-                  EmitStaticDouble(slabel, 0.0, name);
+                  sym.type = T_DOUBLE;
+                  printf("Static 'double' variable '%s'\n", sym.name);
                   break;
                }
             }
             else {
-               printf("Static pointer variable '%s'\n", name);
-               EmitStaticInt(slabel, 0, name);
+               sym.type = T_INT;
+               printf("Static pointer variable '%s'\n", sym.name);
             }
+         
+            EmitExternScalar(&sym, 0, 0.0);
          }
          else {
-            if (pLevel == 0) {
+            if (sym.pLevel == 0) {
                switch (type) {
                case TCHAR:
-                  printf("Local 'char' variable '%s'\n", name);
+                  sym.type = T_CHAR;
+                  printf("Local 'char' variable '%s'\n", sym.name);
                   autoSize += 2;
                   break;
                case TINT:
-                  printf("Local 'int' variable '%s'\n", name);
+                  sym.type = T_INT;
+                  printf("Local 'int' variable '%s'\n", sym.name);
                   autoSize += 1;
                   break;
                case TFLOAT:
-                  printf("Local 'float' variable '%s'\n", name);
+                  sym.type = T_FLOAT;
+                  printf("Local 'float' variable '%s'\n", sym.name);
                   autoSize += 4;
                   break;
                case TDOUBLE:
-                  printf("Local 'double' variable '%s'\n", name);
+                  sym.type = T_DOUBLE;
+                  printf("Local 'double' variable '%s'\n", sym.name);
                   autoSize += 8;
                   break;
                }
             }
             else {
-               printf("Local pointer variable '%s'\n", name);
+               sym.type = T_INT;
+               printf("Local pointer variable '%s'\n", sym.name);
                autoSize += 2;
             }
          }
