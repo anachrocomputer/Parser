@@ -217,12 +217,47 @@ static void GenTargetOperand(const struct Symbol *const sym, const int offset, c
 
 /* LoadScalar --- load a scalar variable into D or Q */
 
-void LoadScalar(const struct Symbol *const sym, char comment[])
+void LoadScalar(const struct Symbol *const sym)
 {
    char target[MAXNAME + 1];
+   char comment[MAXNAME + 64];
+   char *sc;
+   char *ty;
 
    GenTargetOperand(sym, 0, target);
 
+   switch (sym->storageClass) {
+   case SCEXTERN:
+      sc = "extern";
+      break;
+   case SCSTATIC:
+      sc = "static";
+      break;
+   case SCAUTO:
+      sc = "auto";
+      break;
+   case SCREGISTER:
+      sc = "register";
+      break;
+   }
+   
+   switch (sym->type) {
+   case T_CHAR:
+      ty = "char";
+      break;
+   case T_INT:
+      ty = "int";
+      break;
+   case T_FLOAT:
+      ty = "float";
+      break;
+   case T_DOUBLE:
+      ty = "double";
+      break;
+   }
+   
+   snprintf(comment, sizeof (comment), "%s %s %s", sc, ty, sym->name);
+   
    switch (sym->type) {
    case T_CHAR:
       Emit("ldb", target, comment);
@@ -255,7 +290,7 @@ void LoadScalar(const struct Symbol *const sym, char comment[])
 
 /* StoreScalar --- store a scalar variable from D or Q */
 
-void StoreScalar(const struct Symbol *const sym, char comment[])
+void StoreScalar(const struct Symbol *const sym)
 {
    char target[MAXNAME + 1];
 
@@ -264,23 +299,23 @@ void StoreScalar(const struct Symbol *const sym, char comment[])
    switch (sym->type) {
    case T_CHAR:
    case T_UCHAR:
-      Emit("stb", target, comment);
+      Emit("stb", target, sym->name);
       break;
    case T_SHORT:
    case T_USHORT:
    case T_INT:
    case T_UINT:
-      Emit("std", target, comment);
+      Emit("std", target, sym->name);
       break;
    case T_LONG:
    case T_ULONG:
-      Emit("stq", target, comment);
+      Emit("stq", target, sym->name);
       break;
    case T_FLOAT:
-      Emit("stq", target, comment);
+      Emit("stq", target, sym->name);
       break;
    case T_DOUBLE:
-      Emit("stq", target, comment);
+      Emit("stq", target, sym->name);
       GenTargetOperand(sym, 4, target);
       Emit("stq", target, "Store low 32 bits");
       break;

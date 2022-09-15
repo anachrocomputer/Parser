@@ -343,6 +343,7 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
    const int returnLabel = AllocLabel('R');
    
    NextStr = 0;
+   ForgetLocalSymbols();
 
    GetToken(tok);
    
@@ -415,6 +416,8 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
             EmitExternScalar(&sym, 0, 0.0);
          }
          else {
+            sym.fpOffset = -autoSize;
+
             if (sym.pLevel == 0) {
                switch (type) {
                case TCHAR:
@@ -450,6 +453,8 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
          Error("Expected identifier in local variable declaration");
       }
       
+      AddLocalSymbol(&sym);
+      
       GetToken(tok);
       
       ParseSemi(tok, "in local variable declaration");
@@ -474,6 +479,7 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
    }
    
    NextStr = 0;
+   ForgetLocalSymbols();
 }
 
 
@@ -624,6 +630,7 @@ void ParseExpression(struct Token *tok)
    }
    else if (tok->token == TID) {
       struct Symbol tmp;
+      struct Symbol *stp = NULL;
       
       tmp.storageClass = SCEXTERN;
       strncpy(tmp.name, tok->str, sizeof (tmp.name));
@@ -632,16 +639,18 @@ void ParseExpression(struct Token *tok)
       tmp.label = 0;
       tmp.fpOffset = 0;
       
-      const struct Symbol *stp = LookUpExternSymbol(tok->str);
-      
-      if (stp == NULL) {
-         Error("Undeclared identifier: %s", tok->str);
+      if ((stp = LookUpLocalSymbol(tok->str)) == NULL) {
+         stp = LookUpExternSymbol(tok->str);
+         
+         if (stp == NULL) {
+            Error("Undeclared identifier: %s", tok->str);
+         }
       }
 
       GetToken(tok);
 
       if ((tok->token == TINC) || (tok->token == TDEC)) {
-         LoadScalar(stp, "Load scalar");
+         LoadScalar(stp);
 
          if (tok->token == TINC) {
             EmitIncScalar(stp, 1);
@@ -668,10 +677,10 @@ void ParseExpression(struct Token *tok)
       else if (tok->token == TASSIGN) {
          GetToken(tok);
          ParseExpression(tok);
-         StoreScalar(stp, "Store scalar");
+         StoreScalar(stp);
       }
       else {
-         LoadScalar(stp, "Load scalar");
+         LoadScalar(stp);
       }
    }
    else if (tok->token == TSTRLIT) {

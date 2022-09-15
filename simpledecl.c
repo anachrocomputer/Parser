@@ -49,6 +49,19 @@ char *NameOfTheShip(void)
    static int seaState;
    static double funnel;
    
+   namePtr;
+   bosunsInitial;
+   buoy;
+   seaState++;
+   funnel;
+   
+   tea++;
+   billy;
+   captainsInitial--;
+   knots;
+   
+   heading;
+
    return 42;
 }
 

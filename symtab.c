@@ -11,6 +11,8 @@
 
 static int NextSym = 0;
 static struct Symbol SymTab[MAXSYMS];
+static int NextLocalSym = 0;
+static struct Symbol LocalSymTab[MAXSYMS];
 
 
 /* SymTabInit --- initialise this module */
@@ -22,7 +24,7 @@ void SymTabInit(void)
 
 /* AddExternSymbol --- add a symbol to the table of 'extern's */
 
-bool AddExternSymbol(const struct Symbol *sym)
+bool AddExternSymbol(const struct Symbol *const sym)
 {
    int i;
    
@@ -60,4 +62,52 @@ struct Symbol *LookUpExternSymbol(const char name[])
    return (NULL);
 }
 
+
+/* AddLocalSymbol --- add a symbol to the table of local variables */
+
+bool AddLocalSymbol(const struct Symbol *const sym)
+{
+   int i;
+   
+   for (i = 0; i < NextLocalSym; i++) {
+      if (strcmp(LocalSymTab[i].name, sym->name) == 0) {
+         return (false);
+      }
+   }
+
+   LocalSymTab[NextLocalSym].storageClass = sym->storageClass;
+   strncpy(LocalSymTab[NextLocalSym].name, sym->name, MAXNAME);
+   LocalSymTab[NextLocalSym].type = sym->type;
+   LocalSymTab[NextLocalSym].pLevel = sym->pLevel;
+   LocalSymTab[NextLocalSym].label = sym->label;
+   LocalSymTab[NextLocalSym].fpOffset = sym->fpOffset;
+   
+   NextLocalSym++;
+   
+   return (true);
+}
+
+
+/* LookUpLocalSymbol --- look for a symbol in the table of local variables */
+
+struct Symbol *LookUpLocalSymbol(const char name[])
+{
+   int i;
+   
+   for (i = 0; i < NextLocalSym; i++) {
+      if (strcmp(LocalSymTab[i].name, name) == 0) {
+         return (&LocalSymTab[i]);
+      }
+   }
+
+   return (NULL);
+}
+
+
+/* ForgetLocalSymbols --- clear the local symbol table */
+
+void ForgetLocalSymbols(void)
+{
+   NextLocalSym = 0;
+}
 

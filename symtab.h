@@ -17,5 +17,8 @@ struct Symbol {
 };
 
 void SymTabInit(void);
-bool AddExternSymbol(const struct Symbol *sym);
+bool AddExternSymbol(const struct Symbol *const sym);
 struct Symbol *LookUpExternSymbol(const char name[]);
+bool AddLocalSymbol(const struct Symbol *const sym);
+struct Symbol *LookUpLocalSymbol(const char name[]);
+void ForgetLocalSymbols(void);
