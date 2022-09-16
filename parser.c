@@ -144,16 +144,19 @@ int ParseDeclaration(struct Token *tok)
    case TCHAR:
    case TFLOAT:
    case TDOUBLE:
+      PrintSyntax("<type>");
       type = tok->token;
 
       GetToken(tok);
 
       while (tok->token == TSTAR) {
+         PrintSyntax("<'*'>");
          sym.pLevel++;
          GetToken(tok);
       }
       
       if (tok->token == TID) {
+         PrintSyntax("<id:%s>", tok->str);
          strncpy(sym.name, tok->str, MAXNAME);
          GetToken(tok);
       }
@@ -163,6 +166,7 @@ int ParseDeclaration(struct Token *tok)
 
       switch (tok->token) {
       case TASSIGN:  // Scalar initialiser
+         PrintSyntax("<'='>");
          GetToken(tok);
 
          if (sym.pLevel == 0) {
@@ -170,7 +174,6 @@ int ParseDeclaration(struct Token *tok)
             case TCHAR:
                sym.type = T_CHAR;
                if (ParseConstIntExpr(tok, &iValue, &iType)) {
-                  printf("Initialised char '%s' %d\n", sym.name, iValue);
                   EmitExternScalar(&sym, iValue, 0.0);
                }
                else {
@@ -180,7 +183,6 @@ int ParseDeclaration(struct Token *tok)
             case TINT:
                sym.type = T_INT;
                if (ParseConstIntExpr(tok, &iValue, &iType)) {
-                  printf("Initialised int '%s' %d\n", sym.name, iValue);
                   EmitExternScalar(&sym, iValue, 0.0);
                }
                else {
@@ -189,20 +191,17 @@ int ParseDeclaration(struct Token *tok)
                break;
             case TFLOAT:
                sym.type = T_FLOAT;
-               printf("Initialised float '%s' '%s'\n", sym.name, tok->str);
                EmitExternScalar(&sym, 0, tok->fValue);
                GetToken(tok);
                break;
             case TDOUBLE:
                sym.type = T_DOUBLE;
-               printf("Initialised double '%s' '%s'\n", sym.name, tok->str);
                EmitExternScalar(&sym, 0, tok->fValue);
                GetToken(tok);
                break;
             }
          }
          else {
-            printf("Initialised pointer '%s' '%s'\n", sym.name, tok->str);
             EmitExternScalar(&sym, tok->iValue, 0.0);
             GetToken(tok);
          }
@@ -214,10 +213,11 @@ int ParseDeclaration(struct Token *tok)
          ParseSemi(tok, "in declaration");
          break;
       case TOSQBRK:  // Array
+         PrintSyntax("[");
          GetToken(tok);
          if (ParseConstIntExpr(tok, &iValue, &iType)) {
-            printf("Array %d\n", iValue);
             if (tok->token == TCSQBRK) {
+               PrintSyntax("]");
                GetToken(tok);
             }
             else {
@@ -227,41 +227,42 @@ int ParseDeclaration(struct Token *tok)
          else {
             Error("Expected integer constant after '['");
          }
+
+         ParseSemi(tok, "in array declaration");
          break;
       case TOPAREN:  // Function
+         PrintSyntax("(");
          GetToken(tok);
          
          if (tok->token == TVOID) { // Only recognise 'void' functions as yet
+            PrintSyntax("<void>");
             GetToken(tok);
          }
          
          if (tok->token == TCPAREN) {
+            PrintSyntax(")");
+
             if (sym.pLevel == 0) {
                switch (type) {
                case TVOID:
                   sym.type = T_VOID;
-                  printf("Function '%s()' returning void\n", sym.name);
                   break;
                case TCHAR:
                   sym.type = T_INT;
-                  printf("Function '%s()' returning char\n", sym.name);
                   break;
                case TINT:
                   sym.type = T_INT;
-                  printf("Function '%s()' returning int\n", sym.name);
                   break;
                case TFLOAT:
                   sym.type = T_FLOAT;
-                  printf("Function '%s()' returning float\n", sym.name);
                   break;
                case TDOUBLE:
                   sym.type = T_DOUBLE;
-                  printf("Function '%s()' returning double\n", sym.name);
                   break;
                }
             }
             else {
-               printf("Function '%s()' returning pointer\n", sym.name);
+               sym.type = T_INT;
             }
          }
          else {
@@ -280,38 +281,36 @@ int ParseDeclaration(struct Token *tok)
             ParseFunctionBody(tok, &sym);
          }
          else {
-            ParseSemi(tok, "in function declaration");
+            PrintSyntax("<function_prototype>");
+            ParseSemi(tok, "in function prototype");
          }
 
          break;
       case TSEMI:    // Uninitialised scalar
+         GetToken(tok);
+         
          if (sym.pLevel == 0) {
             switch (type) {
             case TCHAR:
                sym.type = T_CHAR;
-               printf("Uninitialised char '%s'\n", sym.name);
                EmitExternScalar(&sym, 0, 0.0);
                break;
             case TINT:
                sym.type = T_INT;
-               printf("Uninitialised int '%s'\n", sym.name);
                EmitExternScalar(&sym, 0, 0.0);
                break;
             case TFLOAT:
                sym.type = T_FLOAT;
-               printf("Uninitialised float '%s'\n", sym.name);
                EmitExternScalar(&sym, 0, 0.0);
                break;
             case TDOUBLE:
                sym.type = T_DOUBLE;
-               printf("Uninitialised double '%s'\n", sym.name);
                EmitExternScalar(&sym, 0, 0.0);
                break;
             }
          }
          else {
             sym.type = T_INT;
-            printf("Uninitialised pointer '%s'\n", sym.name);
             EmitExternScalar(&sym, 0, 0.0);
          }
 
@@ -330,6 +329,8 @@ int ParseDeclaration(struct Token *tok)
       break;
    }
 
+   PrintSyntax("\n");
+   
    return (tok->token);
 }
 
@@ -357,6 +358,8 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
       int type;
       bool isRegister = false;
       
+      PrintSyntax("<declaration>");
+      
       sym.storageClass = SCAUTO;
       sym.name[0] = '\0';
       sym.type = T_INT;
@@ -365,13 +368,16 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
       sym.fpOffset = 0;
       
       if (tok->token == TSTATIC) {           // Accept 'static' storage class
+         PrintSyntax("<static>");
          GetToken(tok);
          sym.storageClass = SCSTATIC;
       }
       else if (tok->token == TAUTO) {        // Ignore 'auto' storage class
+         PrintSyntax("<auto>");
          GetToken(tok);
       }
       else if (tok->token == TREGISTER) {    // Accept 'register' storage class
+         PrintSyntax("<register>");
          GetToken(tok);
          isRegister = true;
       }
@@ -381,6 +387,7 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
       GetToken(tok);
 
       while (tok->token == TSTAR) {
+         PrintSyntax("<'*'>");
          sym.pLevel++;
          GetToken(tok);
       }
@@ -394,7 +401,9 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
       }
       
       if (tok->token == TID) {
+         PrintSyntax("<id:%s>", tok->str);
          strncpy(sym.name, tok->str, MAXNAME);
+
          if (sym.storageClass == SCSTATIC) {
             sym.label = AllocLabel('S');
             
@@ -402,25 +411,20 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
                switch (type) {
                case TCHAR:
                   sym.type = T_CHAR;
-                  printf("Static 'char' variable '%s'\n", sym.name);
                   break;
                case TINT:
                   sym.type = T_INT;
-                  printf("Static 'int' variable '%s'\n", sym.name);
                   break;
                case TFLOAT:
                   sym.type = T_FLOAT;
-                  printf("Static 'float' variable '%s'\n", sym.name);
                   break;
                case TDOUBLE:
                   sym.type = T_DOUBLE;
-                  printf("Static 'double' variable '%s'\n", sym.name);
                   break;
                }
             }
             else {
                sym.type = T_INT;
-               printf("Static pointer variable '%s'\n", sym.name);
             }
          
             EmitExternScalar(&sym, 0, 0.0);
@@ -430,25 +434,20 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
                switch (type) {
                case TCHAR:
                   sym.type = T_CHAR;
-                  printf("Local register 'char' variable '%s'\n", sym.name);
                   break;
                case TINT:
                   sym.type = T_INT;
-                  printf("Local register 'int' variable '%s'\n", sym.name);
                   break;
                case TFLOAT:
                   sym.type = T_FLOAT;
-                  printf("Local register 'float' variable '%s'\n", sym.name);
                   break;
                case TDOUBLE:
                   sym.type = T_DOUBLE;
-                  printf("Local register 'double' variable '%s'\n", sym.name);
                   break;
                }
             }
             else {
                sym.type = T_INT;
-               printf("Local register pointer variable '%s'\n", sym.name);
             }
          }
          else {
@@ -458,29 +457,24 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
                switch (type) {
                case TCHAR:
                   sym.type = T_CHAR;
-                  printf("Local 'char' variable '%s'\n", sym.name);
                   autoSize += 1;
                   break;
                case TINT:
                   sym.type = T_INT;
-                  printf("Local 'int' variable '%s'\n", sym.name);
                   autoSize += 2;
                   break;
                case TFLOAT:
                   sym.type = T_FLOAT;
-                  printf("Local 'float' variable '%s'\n", sym.name);
                   autoSize += 4;
                   break;
                case TDOUBLE:
                   sym.type = T_DOUBLE;
-                  printf("Local 'double' variable '%s'\n", sym.name);
                   autoSize += 8;
                   break;
                }
             }
             else {
                sym.type = T_INT;
-               printf("Local pointer variable '%s'\n", sym.name);
                autoSize += 2;
             }
          }
@@ -491,13 +485,13 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
       
       AddLocalSymbol(&sym);
       
+      PrintSyntax("\n");
       GetToken(tok);
       
       ParseSemi(tok, "in local variable declaration");
    }
    
    // Function entry sequence
-   printf("Size of 'auto' variables: %d\n", autoSize);
    EmitFunctionEntry(fn->name, autoSize);
 
    // Function's executable code
@@ -1065,6 +1059,8 @@ bool ParseConstIntExpr(struct Token *tok, int *value, int *type)
 {
    bool ret = true;
    
+   PrintSyntax("<const_int_expr>");
+   
    if (tok->token == TOPAREN) {
       GetToken(tok);
       ret = ParseConstIntExpr(tok, value, type);
@@ -1092,6 +1088,7 @@ bool ParseConstIntExpr(struct Token *tok, int *value, int *type)
       int rhsValue;
       int rhsType;
       
+      PrintSyntax("<binop>");
       GetToken(tok);
       ret = ParseConstIntExpr(tok, &rhsValue, &rhsType);
       switch (op) {
