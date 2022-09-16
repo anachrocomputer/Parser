@@ -93,7 +93,7 @@ void EmitFunctionEntry(const char name[], const int nBytes)
 {
    fprintf(Asm, "%c%-44s ; Function entry point\n", NAME_PREFIX, name);
 
-   Emit("pshs", "u", "Save old frame pointer");
+   Emit("pshs", "u,y", "Save old frame pointer & register variable");
    Emit("tfr", "s,u", "Make new frame pointer");
    
    if (nBytes != 0) {
@@ -111,7 +111,7 @@ void EmitFunctionExit(const int returnLabel)
 {
    EmitLabel(returnLabel);
    Emit("tfr", "u,s", "Deallocate stack frame");
-   Emit("puls", "u", "Restore frame pointer");
+   Emit("puls", "u,y", "Restore frame pointer & register variable");
    Emit("rts", "", "Return to caller");
 }
 
@@ -215,75 +215,123 @@ static void GenTargetOperand(const struct Symbol *const sym, const int offset, c
 }
 
 
+
+/* storageClassAsString --- generate a string representation of a storage class */
+
+static char *storageClassAsString(const int sc)
+{
+   char *str = "";
+   
+   switch (sc) {
+   case SCEXTERN:
+      str = "extern";
+      break;
+   case SCSTATIC:
+      str = "static";
+      break;
+   case SCAUTO:
+      str = "auto";
+      break;
+   case SCREGISTER:
+      str = "register";
+      break;
+   }
+   
+   return (str);
+}
+
+
+/* typeAsString --- generate a string representation of a type */
+
+static char *typeAsString(const int ty)
+{
+   char *str = "";
+   
+   switch (ty) {
+   case T_CHAR:
+      str = "char";
+      break;
+   case T_UCHAR:
+      str = "unsigned char";
+      break;
+   case T_INT:
+      str = "int";
+      break;
+   case T_UINT:
+      str = "unsigned int";
+      break;
+   case T_FLOAT:
+      str = "float";
+      break;
+   case T_DOUBLE:
+      str = "double";
+      break;
+   }
+   
+   return (str);
+}
+
+
 /* LoadScalar --- load a scalar variable into D or Q */
 
 void LoadScalar(const struct Symbol *const sym)
 {
-   char target[MAXNAME + 1];
    char comment[MAXNAME + 64];
-   char *sc;
-   char *ty;
-
-   GenTargetOperand(sym, 0, target);
-
-   switch (sym->storageClass) {
-   case SCEXTERN:
-      sc = "extern";
-      break;
-   case SCSTATIC:
-      sc = "static";
-      break;
-   case SCAUTO:
-      sc = "auto";
-      break;
-   case SCREGISTER:
-      sc = "register";
-      break;
+   const char *sc = storageClassAsString(sym->storageClass);
+   const char *ty = typeAsString(sym->type);
+   
+   snprintf(comment, sizeof (comment), "Load %s %s %s", sc, ty, sym->name);
+   
+   if (sym->storageClass == SCREGISTER) {
+      switch (sym->type) {
+      case T_CHAR:
+         Emit("tfr", "y,d", comment);
+         Emit("sex", "", "Sign extend to 16 bits");
+         break;
+      case T_UCHAR:
+         Emit("tfr", "y,d", comment);
+         Emit("clra", "", "No sign extension");
+         break;
+      case T_SHORT:
+      case T_USHORT:
+      case T_INT:
+      case T_UINT:
+         Emit("tfr", "y,d", comment);
+         break;
+      }
    }
-   
-   switch (sym->type) {
-   case T_CHAR:
-      ty = "char";
-      break;
-   case T_INT:
-      ty = "int";
-      break;
-   case T_FLOAT:
-      ty = "float";
-      break;
-   case T_DOUBLE:
-      ty = "double";
-      break;
-   }
-   
-   snprintf(comment, sizeof (comment), "%s %s %s", sc, ty, sym->name);
-   
-   switch (sym->type) {
-   case T_CHAR:
-      Emit("ldb", target, comment);
-      Emit("sex", "", "Sign extend to 16 bits");
-      break;
-   case T_UCHAR:
-      Emit("ldb", target, comment);
-      Emit("clra", "", "No sign extension");
-      break;
-   case T_SHORT:
-   case T_USHORT:
-   case T_INT:
-   case T_UINT:
-      Emit("ldd", target, comment);
-      break;
-   case T_LONG:
-   case T_ULONG:
-      Emit("ldq", target, comment);
-      break;
-   case T_FLOAT:
-      Emit("ldq", target, comment);
-      break;
-   case T_DOUBLE:
-      Emit("ldq", target, comment);
-      Emit("nop", "", "How to load low 32 bits?");
-      break;
+   else {
+      char target[MAXNAME + 1];
+
+      GenTargetOperand(sym, 0, target);
+
+      switch (sym->type) {
+      case T_CHAR:
+         Emit("ldb", target, comment);
+         Emit("sex", "", "Sign extend to 16 bits");
+         break;
+      case T_UCHAR:
+         Emit("ldb", target, comment);
+         Emit("clra", "", "No sign extension");
+         break;
+      case T_SHORT:
+      case T_USHORT:
+      case T_INT:
+      case T_UINT:
+         Emit("ldd", target, comment);
+         break;
+      case T_LONG:
+      case T_ULONG:
+         Emit("ldq", target, comment);
+         break;
+      case T_FLOAT:
+         Emit("ldq", target, comment);
+         break;
+      case T_DOUBLE:
+         Emit("ldq", target, comment);
+         Emit("nop", "", "How to load low 32 bits?");
+         break;
+      }
    }
 }
 
@@ -292,33 +340,55 @@ void LoadScalar(const struct Symbol *const sym)
 
 void StoreScalar(const struct Symbol *const sym)
 {
-   char target[MAXNAME + 1];
+   char comment[MAXNAME + 64];
+   const char *sc = storageClassAsString(sym->storageClass);
+   const char *ty = typeAsString(sym->type);
+   
+   snprintf(comment, sizeof (comment), "Store %s %s %s", sc, ty, sym->name);
 
-   GenTargetOperand(sym, 0, target);
+   if (sym->storageClass == SCREGISTER) {
+      switch (sym->type) {
+      case T_CHAR:
+      case T_UCHAR:
+         Emit("tfr", "d,y", comment);
+         break;
+      case T_SHORT:
+      case T_USHORT:
+      case T_INT:
+      case T_UINT:
+         Emit("tfr", "d,y", comment);
+         break;
+      }
+   }
+   else {
+      char target[MAXNAME + 1];
 
-   switch (sym->type) {
-   case T_CHAR:
-   case T_UCHAR:
-      Emit("stb", target, sym->name);
-      break;
-   case T_SHORT:
-   case T_USHORT:
-   case T_INT:
-   case T_UINT:
-      Emit("std", target, sym->name);
-      break;
-   case T_LONG:
-   case T_ULONG:
-      Emit("stq", target, sym->name);
-      break;
-   case T_FLOAT:
-      Emit("stq", target, sym->name);
-      break;
-   case T_DOUBLE:
-      Emit("stq", target, sym->name);
-      GenTargetOperand(sym, 4, target);
-      Emit("stq", target, "Store low 32 bits");
-      break;
+      GenTargetOperand(sym, 0, target);
+
+      switch (sym->type) {
+      case T_CHAR:
+      case T_UCHAR:
+         Emit("stb", target, comment);
+         break;
+      case T_SHORT:
+      case T_USHORT:
+      case T_INT:
+      case T_UINT:
+         Emit("std", target, comment);
+         break;
+      case T_LONG:
+      case T_ULONG:
+         Emit("stq", target, comment);
+         break;
+      case T_FLOAT:
+         Emit("stq", target, comment);
+         break;
+      case T_DOUBLE:
+         Emit("stq", target, comment);
+         GenTargetOperand(sym, 4, target);
+         Emit("stq", target, "Store low 32 bits");
+         break;
+      }
    }
 }
 
@@ -475,43 +545,72 @@ void EmitBranchNotEqual(const int label, const char comment[])
 
 void EmitIncScalar(const struct Symbol *const sym, const int amount)
 {
-   char target[MAXNAME + 1];
    char op[30];
+   char comment[MAXNAME + 64];
+   const char *sc = storageClassAsString(sym->storageClass);
+   const char *ty = typeAsString(sym->type);
+   char *incDec = "inc";
+   
+   if (amount < 0) {
+      incDec = "dec";
+   }
 
-   GenTargetOperand(sym, 0, target);
-   snprintf(op, sizeof (op), "%d,x", amount);
+   snprintf(comment, sizeof (comment), "%s %s %s %s", incDec, sc, ty, sym->name);
 
-   switch (sym->type) {
-   case T_CHAR:
-   case T_UCHAR:
-      if (amount == 1) {
-         Emit("inc", target, "inc char");
+
+   if (sym->storageClass == SCREGISTER) {
+      snprintf(op, sizeof (op), "%d,y", amount);
+
+      switch (sym->type) {
+      case T_CHAR:
+      case T_UCHAR:
+      case T_SHORT:
+      case T_USHORT:
+      case T_INT:
+      case T_UINT:
+         Emit("leay", op, comment);
+         break;
       }
-      else if (amount == -1) {
-         Emit("dec", target, "dec char");
+   }
+   else {
+      char target[MAXNAME + 1];
+
+      GenTargetOperand(sym, 0, target);
+
+      snprintf(op, sizeof (op), "%d,x", amount);
+
+      switch (sym->type) {
+      case T_CHAR:
+      case T_UCHAR:
+         if (amount == 1) {
+            Emit("inc", target, comment);
+         }
+         else if (amount == -1) {
+            Emit("dec", target, comment);
+         }
+         else {
+            fprintf(stderr, "Inc/Dec by more than 1\n");
+         }
+         break;
+      case T_SHORT:
+      case T_USHORT:
+      case T_INT:
+      case T_UINT:
+         Emit("ldx", target, comment);
+         Emit("leax", op, incDec);
+         Emit("stx", target, comment);
+         break;
+      case T_LONG:
+      case T_ULONG:
+         Emit("nop", "", comment);
+         break;
+      case T_FLOAT:
+         Emit("nop", "", comment);
+         break;
+      case T_DOUBLE:
+         Emit("nop", "", comment);
+         break;
       }
-      else {
-         fprintf(stderr, "Inc/Dec by more than 1\n");
-      }
-      break;
-   case T_SHORT:
-   case T_USHORT:
-   case T_INT:
-   case T_UINT:
-      Emit("ldx", target, "inc");
-      Emit("leax", op, "inc");
-      Emit("stx", target, "inc");
-      break;
-   case T_LONG:
-   case T_ULONG:
-      Emit("nop", "", "inc long");
-      break;
-   case T_FLOAT:
-      Emit("nop", "", "inc float");
-      break;
-   case T_DOUBLE:
-      Emit("nop", "", "inc double");
-      break;
    }
 }
 

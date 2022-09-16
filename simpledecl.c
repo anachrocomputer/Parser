@@ -39,9 +39,11 @@ char *NameOfTheShip();
 char *NameOfTheShip(void)
 {
    int tea;
+   register int quickTea;
    static char *namePtr;
    char *billy;
    char captainsInitial;
+   register char notSoFast;
    static char bosunsInitial;
    register float heading;
    static float buoy;
@@ -60,7 +62,15 @@ char *NameOfTheShip(void)
    captainsInitial--;
    knots;
    
+   quickTea = 33;
+   notSoFast = 'S';
    heading;
+   
+   quickTea++;
+   notSoFast--;
+   
+   quickTea;
+   notSoFast;
 
    return 42;
 }
@@ -69,6 +79,12 @@ int TonguingIsDone = 0;  // Cutting strips of blubber
 
 void TakeOurLeaveAndGo(void)
 {
+   static int seaState;
+   register int parrot;
+   
+   parrot = 8;
+   seaState--;
+   
    return;
 }
 

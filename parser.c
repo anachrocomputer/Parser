@@ -339,6 +339,7 @@ int ParseDeclaration(struct Token *tok)
 void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
 {
    int autoSize = 0;
+   int nRegister = 0;
    int i;
    const int returnLabel = AllocLabel('R');
    
@@ -354,6 +355,7 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
           (tok->token == TREGISTER)) {
       struct Symbol sym;
       int type;
+      bool isRegister = false;
       
       sym.storageClass = SCAUTO;
       sym.name[0] = '\0';
@@ -371,7 +373,7 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
       }
       else if (tok->token == TREGISTER) {    // Accept 'register' storage class
          GetToken(tok);
-         sym.storageClass = SCREGISTER;
+         isRegister = true;
       }
       
       type = tok->token;   // Yikes, we're assuming that the next token is a valid type!
@@ -383,6 +385,14 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
          GetToken(tok);
       }
          
+      // Decide whether to accept the 'register' storage class
+      if (isRegister && (sym.storageClass == SCAUTO)) {
+         if (((type == TCHAR) || (type == TINT)) && (nRegister < 1)) {
+            sym.storageClass = SCREGISTER;
+            nRegister++;
+         }
+      }
+      
       if (tok->token == TID) {
          strncpy(sym.name, tok->str, MAXNAME);
          if (sym.storageClass == SCSTATIC) {
@@ -415,6 +425,32 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
          
             EmitExternScalar(&sym, 0, 0.0);
          }
+         else if (sym.storageClass == SCREGISTER) {
+            if (sym.pLevel == 0) {
+               switch (type) {
+               case TCHAR:
+                  sym.type = T_CHAR;
+                  printf("Local register 'char' variable '%s'\n", sym.name);
+                  break;
+               case TINT:
+                  sym.type = T_INT;
+                  printf("Local register 'int' variable '%s'\n", sym.name);
+                  break;
+               case TFLOAT:
+                  sym.type = T_FLOAT;
+                  printf("Local register 'float' variable '%s'\n", sym.name);
+                  break;
+               case TDOUBLE:
+                  sym.type = T_DOUBLE;
+                  printf("Local register 'double' variable '%s'\n", sym.name);
+                  break;
+               }
+            }
+            else {
+               sym.type = T_INT;
+               printf("Local register pointer variable '%s'\n", sym.name);
+            }
+         }
          else {
             sym.fpOffset = -autoSize;
 
@@ -423,12 +459,12 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
                case TCHAR:
                   sym.type = T_CHAR;
                   printf("Local 'char' variable '%s'\n", sym.name);
-                  autoSize += 2;
+                  autoSize += 1;
                   break;
                case TINT:
                   sym.type = T_INT;
                   printf("Local 'int' variable '%s'\n", sym.name);
-                  autoSize += 1;
+                  autoSize += 2;
                   break;
                case TFLOAT:
                   sym.type = T_FLOAT;
