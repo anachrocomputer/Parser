@@ -89,11 +89,16 @@ void EmitLabel(const int label)
 
 /* EmitFunctionEntry --- emit a label and setup code for a function */
 
-void EmitFunctionEntry(const char name[], const int nBytes)
+void EmitFunctionEntry(const char name[], const int nBytes, const int nRegister)
 {
    fprintf(Asm, "%c%-44s ; Function entry point\n", NAME_PREFIX, name);
 
-   Emit("pshs", "u,y", "Save old frame pointer & register variable");
+   if (nRegister == 0) {
+      Emit("pshs", "u", "Save old frame pointer");
+   }
+   else {
+      Emit("pshs", "u,y", "Save old frame pointer & register variable");
+   }
    Emit("tfr", "s,u", "Make new frame pointer");
    
    if (nBytes != 0) {
@@ -107,11 +112,16 @@ void EmitFunctionEntry(const char name[], const int nBytes)
 
 /* EmitFunctionExit --- emit return label and function exit code */
 
-void EmitFunctionExit(const int returnLabel)
+void EmitFunctionExit(const int returnLabel, const int nRegister)
 {
    EmitLabel(returnLabel);
    Emit("tfr", "u,s", "Deallocate stack frame");
-   Emit("puls", "u,y", "Restore frame pointer & register variable");
+   if (nRegister == 0) {
+      Emit("puls", "u", "Restore frame pointer");
+   }
+   else {
+      Emit("puls", "u,y", "Restore frame pointer & register variable");
+   }
    Emit("rts", "", "Return to caller");
 }
 

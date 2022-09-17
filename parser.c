@@ -492,7 +492,7 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
    }
    
    // Function entry sequence
-   EmitFunctionEntry(fn->name, autoSize);
+   EmitFunctionEntry(fn->name, autoSize, nRegister);
 
    // Function's executable code
    while (tok->token != TCBRACE) {
@@ -502,7 +502,7 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
    GetToken(tok);
    
    // Function exit sequence
-   EmitFunctionExit(returnLabel);
+   EmitFunctionExit(returnLabel, nRegister);
    
    for (i = 0; i < NextStr; i++) {
       EmitStaticCharArray(&Strings[i], "<anon>");
