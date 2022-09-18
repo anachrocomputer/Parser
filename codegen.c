@@ -44,6 +44,14 @@ bool OpenAssemblerFile(const char fname[])
    fprintf(Asm, "         tfr  a,b               ; Move returned ASCII char into LSB of D register\n");
    fprintf(Asm, "         clra                   ; Make sure MSB is zero\n");
    fprintf(Asm, "         rts\n");
+   fprintf(Asm, "_hex2ou  tfr  b,a               ; Move char into A register\n");
+   fprintf(Asm, "         jmp  $a17c             ; Call hex2ou in EPROM\n");
+   fprintf(Asm, "_hex4ou  jmp  $a189             ; Call hex4ou in EPROM\n");
+   fprintf(Asm, "_hex8ou  pshs d                 ; Save D\n");
+   fprintf(Asm, "         tfr  w,d               ; Transfer hi word to D\n");
+   fprintf(Asm, "         jsr  $a189             ; Call hex4ou in EPROM (hi)\n");
+   fprintf(Asm, "         puls d                 ; Restore D\n");
+   fprintf(Asm, "         jmp  $a189             ; Call hex4ou in EPROM (lo)\n");
 
    return (true);
 }

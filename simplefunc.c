@@ -12,8 +12,14 @@ double Whale;
 void vduchar(void);
 void vdustr(void);
 int getchar(void);
+void hex2ou(void);
+void hex4ou(void);
+void hex8ou(void);
 
 void PutToSea(void);
+void newline(void);
+
+/* PutToSea --- test assembler-coded VDU output functions */
 
 void PutToSea(void)
 {
