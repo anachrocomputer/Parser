@@ -3,10 +3,10 @@
 // Scalars, all global until we get 'auto', 'static' and 'register' working
 int Wave;
 char *Bow;
-char Tea;
+int Tea;
 int Sugar;
-float Rum;
-double Whale;
+int Rum;
+int Whale;
 
 // Assembler-coded functions in the run-time library
 void vduchar(void);
@@ -36,6 +36,134 @@ void PutToSea(void)
 }
 
 
+/* SugarAndTeaAndRum --- test nested 'for' loops */
+
+void SugarAndTeaAndRum(void)
+{
+   for (Rum = 10; Rum; Rum--) {
+      Sugar = 'A';
+      
+      for (Tea = 40; Tea; Tea--) {
+         Sugar++;
+         vduchar();
+      }
+      
+      newline();
+   }
+}
+
+
+/* DippedDown --- inner 'for' loop with another 'register' loop counter */
+
+void DippedDown(void)
+{
+   register int tea;
+   static int sugar;
+   
+   sugar = 'A';
+   
+   for (tea = 40; tea; tea--) {
+      sugar++;
+      vduchar();
+   }
+}
+
+
+/* HerBowDippedDown --- test nested 'for' loops with 'register' loop counter */
+
+void HerBowDippedDown(void)
+{
+   register int rum;
+   
+   for (rum = 10; rum; rum--) {
+      DippedDown();
+      newline();
+   }
+}
+
+
+/* HeaveHo --- test 'if' statements */
+
+void HeaveHo(void)
+{
+   Sugar = 0;
+   
+   for (Rum = 10; Rum; Rum--) {
+      if (Sugar) {
+         "Even ";
+         vdustr();
+         Sugar--;
+      }
+      else {
+         "Odd ";
+         vdustr();
+         Sugar++;
+      }
+   }
+   
+   newline();
+}
+
+
+/* TakeOurLeaveAndGo --- test 'while' loops */
+
+void TakeOurLeaveAndGo(void)
+{
+   Rum = 10;
+   while (Rum) {
+      Tea = 40;
+      Sugar = 'A';
+      while (Tea) {
+         Tea--;
+         Sugar++;
+         vduchar();
+      }
+      Rum--;
+      newline();
+   }
+}
+
+
+/* SixteenMen --- test hex output functions */
+
+void SixteenMen(void)
+{
+   register int hex;
+   
+   hex = 0xAA;
+   
+   for (Tea = 15; Tea; Tea--) {
+      hex++;
+      hex2ou();
+      ' ';
+      vduchar();
+   }
+
+   newline();
+   
+   hex = 0xbeef;
+   
+   hex;
+   hex4ou();
+   newline();
+   
+   hex = 0xdead;
+
+   hex;
+   hex8ou();
+   newline();
+}
+
+
+void newline(void)
+{
+   '\r';
+   vduchar();
+   '\n';
+   vduchar();
+}
+
+
 void main(void)
 {
    'm';
@@ -46,10 +174,7 @@ void main(void)
    vduchar();
    'n';
    vduchar();
-   '\r';
-   vduchar();
-   '\n';
-   vduchar();
+   newline();
 
    PutToSea();
    
@@ -58,12 +183,11 @@ void main(void)
       vduchar();
    }
 
-   '\r';
-   vduchar();
-   '\n';
-   vduchar();
+   newline();
+
+   Whale = 1;
    
-   for (Sugar = 4; Sugar; Sugar--) {
+   while (Whale) {
       Wave = getchar();
       
       switch (Wave) {
@@ -83,6 +207,36 @@ void main(void)
       case 'd':
          Bow = "Deck";
          break;
+      case 'F':
+      case 'f':
+         SugarAndTeaAndRum();
+         Bow = "Fo'c'sle";
+         break;
+      case 'H':
+      case 'h':
+         SixteenMen();
+         Bow = "Heave-Ho";
+         break;
+      case 'I':
+      case 'i':
+         HeaveHo();
+         Bow = "Iceberg";
+         break;
+      case 'Q':
+      case 'q':
+         Whale = 0;
+         Bow = "Queequeg";
+         break;
+      case 'R':
+      case 'r':
+         HerBowDippedDown();
+         Bow = "Arrrr";
+         break;
+      case 'W':
+      case 'w':
+         TakeOurLeaveAndGo();
+         Bow = "Whale";
+         break;
       default:
          Bow = "Zenith";
          break;
@@ -90,10 +244,7 @@ void main(void)
       
       Bow;
       vdustr();
-      '\r';
-       vduchar();
-      '\n';
-      vduchar();
+      newline();
    }
 }
 
