@@ -451,8 +451,6 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
             }
          }
          else {
-            sym.fpOffset = -autoSize;
-
             if (sym.pLevel == 0) {
                switch (type) {
                case TCHAR:
@@ -477,6 +475,8 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
                sym.type = T_INT;
                autoSize += 2;
             }
+
+            sym.fpOffset = -autoSize;
          }
       }
       else {

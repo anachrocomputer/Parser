@@ -36,7 +36,7 @@ void PutToSea(void)
 }
 
 
-/* SugarAndTeaAndRum --- test nested 'for' loops */
+/* SugarAndTeaAndRum --- test nested 'for' loops using externs */
 
 void SugarAndTeaAndRum(void)
 {
@@ -45,6 +45,27 @@ void SugarAndTeaAndRum(void)
       
       for (Tea = 40; Tea; Tea--) {
          Sugar++;
+         vduchar();
+      }
+      
+      newline();
+   }
+}
+
+
+/* ToBringUs --- test nested 'for' loops using 'auto' loop counters */
+
+void ToBringUs(void)
+{
+   auto int rum;
+   auto int tea;
+   auto int sugar;
+   
+   for (rum = 10; rum; rum--) {
+      sugar = 'A';
+      
+      for (tea = 40; tea; tea--) {
+         sugar++;
          vduchar();
       }
       
@@ -155,6 +176,47 @@ void SixteenMen(void)
 }
 
 
+/* Cargo --- test static variable acting as a state machine */
+
+void Cargo(void)
+{
+   static int cargo; // Implicitly initialised to 0
+   
+   switch (cargo) {
+   case 0:
+      "Sugar";
+      vdustr();
+      cargo++;
+      break;
+   case 1:
+      "Tea";
+      vdustr();
+      cargo++;
+      break;
+   case 2:
+      "Rum";
+      vdustr();
+      cargo = 0;
+   }
+}
+
+
+/* ThereOnceWasAShip --- test static storage class */
+
+void ThereOnceWasAShip(void)
+{
+   int hold;
+   
+   for (hold = 7; hold; hold--) {
+      Cargo();
+      ' ';
+      vduchar();
+   }
+   
+   newline();
+}
+
+
 void newline(void)
 {
    '\r';
@@ -193,6 +255,7 @@ void main(void)
       switch (Wave) {
       case 'A':
       case 'a':
+         ToBringUs();
          Bow = "Anchor";
          break;
       case 'B':
@@ -231,6 +294,11 @@ void main(void)
       case 'r':
          HerBowDippedDown();
          Bow = "Arrrr";
+         break;
+      case 'S':
+      case 's':
+         ThereOnceWasAShip();
+         Bow = "Sea";
          break;
       case 'W':
       case 'w':
