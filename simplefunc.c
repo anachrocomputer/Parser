@@ -15,6 +15,7 @@ int getchar(void);
 void hex2ou(void);
 void hex4ou(void);
 void hex8ou(void);
+void exit(void);
 
 void PutToSea(void);
 void newline(void);
@@ -126,12 +127,29 @@ void HeaveHo(void)
 }
 
 
-/* TakeOurLeaveAndGo --- test 'while' loops */
+/* TakeOurLeaveAndGo --- test 'exit()' function */
 
 void TakeOurLeaveAndGo(void)
 {
-   Rum = 10;
-   while (Rum) {
+   "The tonguing is done";
+   vdustr();
+   newline();
+   
+   exit();
+   
+   "We're gone"; // Should not print
+   vdustr();
+}
+
+
+/* WhaleInTow --- test 'while' loops */
+
+char *WhaleInTow(void)
+{
+   auto int rum;
+   
+   rum = 10;
+   while (rum) {
       Tea = 40;
       Sugar = 'A';
       while (Tea) {
@@ -139,9 +157,11 @@ void TakeOurLeaveAndGo(void)
          Sugar++;
          vduchar();
       }
-      Rum--;
+      rum--;
       newline();
    }
+   
+   return ("Whale");
 }
 
 
@@ -178,26 +198,26 @@ void SixteenMen(void)
 
 /* Cargo --- test static variable acting as a state machine */
 
-void Cargo(void)
+char *Cargo(void)
 {
    static int cargo; // Implicitly initialised to 0
+   char *merchandise;
    
    switch (cargo) {
    case 0:
-      "Sugar";
-      vdustr();
+      merchandise = "Sugar";
       cargo++;
       break;
    case 1:
-      "Tea";
-      vdustr();
+      merchandise = "Tea";
       cargo++;
       break;
    case 2:
-      "Rum";
-      vdustr();
+      merchandise = "Rum";
       cargo = 0;
    }
+   
+   return (merchandise);
 }
 
 
@@ -206,9 +226,17 @@ void Cargo(void)
 void ThereOnceWasAShip(void)
 {
    int hold;
+   char *goods;
    
-   for (hold = 7; hold; hold--) {
-      Cargo();
+   for (hold = 5; hold; hold--) {
+      goods = Cargo();
+      
+      hold;
+      hex2ou();
+      ':';
+      vduchar();
+      goods;
+      vdustr();
       ' ';
       vduchar();
    }
@@ -302,8 +330,12 @@ void main(void)
          break;
       case 'W':
       case 'w':
+         Bow = WhaleInTow();
+         break;
+      case 'X':
+      case 'x':
          TakeOurLeaveAndGo();
-         Bow = "Whale";
+         Bow = "XXX";
          break;
       default:
          Bow = "Zenith";
