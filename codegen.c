@@ -35,9 +35,12 @@ bool OpenAssemblerFile(const char fname[])
    
    fprintf(Asm, "        setdp 0\n");
    fprintf(Asm, "        org   $0400\n");
-   fprintf(Asm, "appEntry tfr  s,u               ; Copy SP into U\n");
-   fprintf(Asm, "         stu  jmpbuf            ; Save initial SP in case we call 'exit()'\n");
-   fprintf(Asm, "         jmp  _main\n");
+   fprintf(Asm, "appEntry sts  saveSP            ; Save initial SP in case we call 'exit()'\n");
+   fprintf(Asm, "         jsr  _main\n");
+   fprintf(Asm, "appExit  rts\n");
+   fprintf(Asm, "saveSP   fdb  0                 ; Space to store initial SP\n");
+   fprintf(Asm, "_exit    lds  saveSP            ; Recover initial SP\n");
+   fprintf(Asm, "         bra  appExit           ; Branch to instruction after 'main()'\n");
    fprintf(Asm, "_vduchar tfr  b,a               ; Move char into A register\n");
    fprintf(Asm, "         jmp  $a020             ; Send one char to the VDU\n");
    fprintf(Asm, "_vdustr  tfr  d,x               ; Move pointer into X register\n");
@@ -54,10 +57,6 @@ bool OpenAssemblerFile(const char fname[])
    fprintf(Asm, "         jsr  $a189             ; Call hex4ou in EPROM (hi)\n");
    fprintf(Asm, "         puls d                 ; Restore D\n");
    fprintf(Asm, "         jmp  $a189             ; Call hex4ou in EPROM (lo)\n");
-   fprintf(Asm, "jmpbuf   fdb  0                 ; Space to store initial SP\n");
-   fprintf(Asm, "_exit    ldu  jmpbuf            ; Recover initial SP\n");
-   fprintf(Asm, "         tfr  u,s               ; Move SP back to its initial position\n");
-   fprintf(Asm, "         rts                    ; Return as if 'main()' returned\n");
 
    return (true);
 }
