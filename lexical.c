@@ -64,6 +64,8 @@ void LexicalInit(void)
    installkw("long",     TLONG,     true);
    installkw("auto",     TAUTO,     true);
    installkw("static",   TSTATIC,   true);
+   installkw("inline",   TINLINE,   true);
+   installkw("restrict", TRESTRICT, true);
    installkw("const",    TCONST,    true);
    installkw("volatile", TVOLATILE, true);
    installkw("signed",   TSIGNED,   true);
@@ -190,7 +192,7 @@ void PrintToken(const struct Token *tok)
       printf("NULL:     '%c'\n", tok->str[0]);
       break;
    case TINVAL:
-      printf("INVALID:  '%c'\n", tok->str[0]);
+      printf("INVALID:  '%s'\n", tok->str);
       break;
    case TID:
       printf("NAME:     '%s' %s\n", tok->str, tokenAsStr(tok));
@@ -224,6 +226,8 @@ void PrintToken(const struct Token *tok)
    case TAUTO:
    case TREGISTER:
    case TSTATIC:
+   case TINLINE:
+   case TRESTRICT:
    case TEXTERN:
    case TCONST:
    case TVOLATILE:
@@ -379,11 +383,6 @@ static int GetOneToken(struct Token *tok)
             tok->str[0] = ch;
             tok->str[1] = EOS;
             return (tok->token);
-         case '.':
-            tok->token = TDOT;
-            tok->str[0] = ch;
-            tok->str[1] = EOS;
-            return (tok->token);
          case '?':
             tok->token = TQUEST;
             tok->str[0] = ch;
@@ -423,6 +422,11 @@ static int GetOneToken(struct Token *tok)
             tok->str[0] = ch;
             i = 1;
             state = 3;
+            break;
+         case '.':
+            tok->str[0] = ch;
+            i = 1;
+            state = 33;
             break;
          case '0':
             tok->str[0] = ch;
@@ -1201,6 +1205,35 @@ static int GetOneToken(struct Token *tok)
             state = 12;
          }
          break;
+      case 33:       // seen '.'
+         if (ch == '.') {
+            state = 34;
+            tok->str[i++] = ch;
+         }
+         else {
+            state = 0;
+            ungetc(ch, Src);
+            tok->str[i] = EOS;
+            tok->token = TDOT;
+            return (tok->token);
+         }
+         break;
+      case 34:       // seen '..'
+         if (ch == '.') {
+            state = 0;
+            tok->str[i++] = ch;
+            tok->str[i] = EOS;
+            tok->token = TELLIPSIS;
+            return (tok->token);
+         }
+         else {
+            state = 0;
+            ungetc(ch, Src);
+            tok->str[i] = EOS;
+            tok->token = TINVAL;
+            return (tok->token);
+         }
+         break;
       }
    }
 
@@ -1356,6 +1389,9 @@ char *tokenAsStr(const struct Token *tok)
    case TDOT:
       str = "TDOT";
       break;
+   case TELLIPSIS:
+      str = "TELLIPSIS";
+      break;
    case TID:
       str = "TID";
       break;
@@ -1412,6 +1448,12 @@ char *tokenAsStr(const struct Token *tok)
       break;
    case TREGISTER:
       str = "TREGISTER";
+      break;
+   case TINLINE:
+      str = "TINLINE";
+      break;
+   case TRESTRICT:
+      str = "TRESTRICT";
       break;
    case TSTATIC:
       str = "TSTATIC";
