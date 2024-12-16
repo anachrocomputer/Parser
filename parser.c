@@ -22,18 +22,18 @@ void parse(const char fname[]);
 void parser(void);
 int ParseDeclaration(struct Token *tok);
 void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn);
-void ParseStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel);
-void ParseReturn(struct Token *tok, const int returnLabel);
-void ParseCompoundStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel);
-void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel);
+void ParseStatement(struct Token *tok, const struct Symbol *const fn, const int returnLabel, const int breakLabel, const int continueLabel);
+void ParseReturn(struct Token *tok, const struct Symbol *const fn, const int returnLabel);
+void ParseCompoundStatement(struct Token *tok, const struct Symbol *const fn, const int returnLabel, const int breakLabel, const int continueLabel);
+void ParseIf(struct Token *tok, const struct Symbol *const fn, const int returnLabel, const int breakLabel, const int continueLabel);
 void ParseExpression(struct Token *tok);
-void ParseDo(struct Token *tok, const int returnLabel);
+void ParseDo(struct Token *tok, const struct Symbol *const fn, const int returnLabel);
 void ParseBreak(struct Token *tok, const int breakLabel);
 void ParseContinue(struct Token *tok, const int continueLabel);
 void ParseGoto(struct Token *tok);
-void ParseWhile(struct Token *tok, const int returnLabel);
-void ParseFor(struct Token *tok, const int returnLabel);
-void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLabel);
+void ParseWhile(struct Token *tok, const struct Symbol *const fn, const int returnLabel);
+void ParseFor(struct Token *tok, const struct Symbol *const fn, const int returnLabel);
+void ParseSwitch(struct Token *tok, const struct Symbol *const fn, const int returnLabel, const int continueLabel);
 void ParseSemi(struct Token *tok, const char location[]);
 bool ParseConstIntExpr(struct Token *tok, int *value, int *type);
 
@@ -123,6 +123,7 @@ int ParseDeclaration(struct Token *tok)
    int type;
    int iValue;
    int iType;
+   int paramSize = 0;
    
    type = 0;
    
@@ -132,6 +133,7 @@ int ParseDeclaration(struct Token *tok)
    sym.pLevel = 0;
    sym.label = NOLABEL;
    sym.fpOffset = 0;
+   sym.readOnly = false;
    
    switch (tok->token) {
    case TEOF:
@@ -233,10 +235,91 @@ int ParseDeclaration(struct Token *tok)
       case TOPAREN:  // Function
          PrintSyntax("(");
          GetToken(tok);
+         paramSize = 0;
          
-         if (tok->token == TVOID) { // Only recognise 'void' functions as yet
-            PrintSyntax("<void>");
+         // Function's formal parameters
+         while ((tok->token == TINT) || (tok->token == TCHAR) ||
+                (tok->token == TFLOAT) || (tok->token == TDOUBLE) ||
+                (tok->token == TVOID) || (tok->token == TCONST)) {
+            struct Symbol param;
+            int type;
+            
+            PrintSyntax("<formal_parameter>");
+            
+            param.storageClass = SCAUTO;
+            param.name[0] = '\0';
+            param.type = T_INT;
+            param.pLevel = 0;
+            param.label = NOLABEL;
+            param.fpOffset = 0;
+            param.readOnly = false;
+            
+            if (tok->token == TCONST) {
+               GetToken(tok);
+               
+               param.readOnly = true;
+            }
+            
+            type = tok->token;   // Yikes, we're assuming that the next token is a valid type!
+            
             GetToken(tok);
+            
+            if (type == TVOID) { // 'void' must be alone with no identifier following
+               break;
+            }
+            
+            while (tok->token == TSTAR) {
+               PrintSyntax("<'*'>");
+               param.pLevel++;
+               GetToken(tok);
+            }
+            
+            if (tok->token == TID) {
+               PrintSyntax("<id:%s>", tok->str);
+               strncpy(param.name, tok->str, MAXNAME);
+
+               if (param.pLevel == 0) {
+                  switch (type) {
+                  case TCHAR:
+                     param.type = T_CHAR;
+                     paramSize += 2;
+                     break;
+                  case TINT:
+                     param.type = T_INT;
+                     paramSize += 2;
+                     break;
+                  case TFLOAT:
+                     param.type = T_FLOAT;
+                     paramSize += 4;
+                     break;
+                  case TDOUBLE:
+                     param.type = T_DOUBLE;
+                     paramSize += 8;
+                     break;
+                  }
+               }
+               else {
+                  param.type = T_INT;
+                  paramSize += 2;
+               }
+
+               param.fpOffset = paramSize;
+            }
+            else {
+               Error("Expected identifier in parameter declaration");
+            }
+            
+            AddLocalSymbol(&param);
+            
+            PrintSyntax("\n");
+            GetToken(tok);
+            
+            if (tok->token == TCOMMA) {
+               GetToken(tok);
+            }
+            else if (tok->token != TCPAREN) {
+               Error("Missing comma in parameter list");
+            }
          }
          
          if (tok->token == TCPAREN) {
@@ -271,6 +354,8 @@ int ParseDeclaration(struct Token *tok)
 
          GetToken(tok);
 
+         sym.readOnly = true;
+         
          if (AddExternSymbol(&sym) == false) {
             // Functions may already have prototypes or K&R-style declarations
             //Error("Symbol '%s' is already declared", sym.name);
@@ -284,6 +369,8 @@ int ParseDeclaration(struct Token *tok)
             PrintSyntax("<function_prototype>");
             ParseSemi(tok, "in function prototype");
          }
+         
+         sym.readOnly = false;
 
          break;
       case TSEMI:    // Uninitialised scalar
@@ -345,7 +432,6 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
    const int returnLabel = AllocLabel('R');
    
    NextStr = 0;
-   ForgetLocalSymbols();
 
    GetToken(tok);
    
@@ -353,7 +439,7 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
    while ((tok->token == TINT) || (tok->token == TCHAR) ||
           (tok->token == TFLOAT) || (tok->token == TDOUBLE) ||
           (tok->token == TSTATIC) || (tok->token == TAUTO) ||
-          (tok->token == TREGISTER)) {
+          (tok->token == TREGISTER) ||(tok->token == TCONST)) {
       struct Symbol sym;
       int type;
       bool isRegister = false;
@@ -366,11 +452,17 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
       sym.pLevel = 0;
       sym.label = NOLABEL;
       sym.fpOffset = 0;
+      sym.readOnly = false;
       
       if (tok->token == TSTATIC) {           // Accept 'static' storage class
          PrintSyntax("<static>");
          GetToken(tok);
          sym.storageClass = SCSTATIC;
+      }
+      else if (tok->token == TCONST) {       // Accept 'const' attribute
+         PrintSyntax("<const>");
+         GetToken(tok);
+         sym.readOnly = true;
       }
       else if (tok->token == TAUTO) {        // Ignore 'auto' storage class
          PrintSyntax("<auto>");
@@ -496,7 +588,7 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
 
    // Function's executable code
    while (tok->token != TCBRACE) {
-      ParseStatement(tok, returnLabel, NOLABEL, NOLABEL);
+      ParseStatement(tok, fn, returnLabel, NOLABEL, NOLABEL);
    }
    
    GetToken(tok);
@@ -515,25 +607,25 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
 
 /* ParseStatement --- parse a single statement */
 
-void ParseStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel)
+void ParseStatement(struct Token *tok, const struct Symbol *const fn, const int returnLabel, const int breakLabel, const int continueLabel)
 {
    PrintSyntax("<statement> ");
    
    switch (tok->token) {
    case TRETURN:
-      ParseReturn(tok, returnLabel);
+      ParseReturn(tok, fn, returnLabel);
       break;
    case TIF:
-      ParseIf(tok, returnLabel, breakLabel, continueLabel);
+      ParseIf(tok, fn, returnLabel, breakLabel, continueLabel);
       break;
    case TDO:
-      ParseDo(tok, returnLabel);
+      ParseDo(tok, fn, returnLabel);
       break;
    case TFOR:
-      ParseFor(tok, returnLabel);
+      ParseFor(tok, fn, returnLabel);
       break;
    case TWHILE:
-      ParseWhile(tok, returnLabel);
+      ParseWhile(tok, fn, returnLabel);
       break;
    case TGOTO:
       ParseGoto(tok);
@@ -545,10 +637,10 @@ void ParseStatement(struct Token *tok, const int returnLabel, const int breakLab
       ParseBreak(tok, breakLabel);
       break;
    case TSWITCH:
-      ParseSwitch(tok, returnLabel, continueLabel);
+      ParseSwitch(tok, fn, returnLabel, continueLabel);
       break;
    case TOBRACE:
-      ParseCompoundStatement(tok, returnLabel, breakLabel, continueLabel);
+      ParseCompoundStatement(tok, fn, returnLabel, breakLabel, continueLabel);
       break;
    default:
       ParseExpression(tok);
@@ -560,16 +652,24 @@ void ParseStatement(struct Token *tok, const int returnLabel, const int breakLab
 
 /* ParseReturn --- parse a 'return' statement */
 
-void ParseReturn(struct Token *tok, const int returnLabel)
+void ParseReturn(struct Token *tok, const struct Symbol *const fn, const int returnLabel)
 {
    PrintSyntax("<return> ");
    GetToken(tok);
 
    if (tok->token == TSEMI) {
       PrintSyntax("\n");
+      
+      if (fn->type != T_VOID) {
+         Error("non-void function %s returns no value", fn->name);
+      }
    }
    else {
       ParseExpression(tok);
+      
+      if (fn->type == T_VOID) {
+         Error("void function %s returns a value", fn->name);
+      }
    }
    
    EmitJump(returnLabel, "return");
@@ -580,14 +680,14 @@ void ParseReturn(struct Token *tok, const int returnLabel)
 
 /* ParseCompoundStatement --- parse a compound statement */
 
-void ParseCompoundStatement(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel)
+void ParseCompoundStatement(struct Token *tok, const struct Symbol *const fn, const int returnLabel, const int breakLabel, const int continueLabel)
 {
    PrintSyntax("<compound_statement>\n");
 
    GetToken(tok);
    
    while (tok->token != TCBRACE) {
-      ParseStatement(tok, returnLabel, breakLabel, continueLabel);
+      ParseStatement(tok, fn, returnLabel, breakLabel, continueLabel);
    }
 
    GetToken(tok); /* Skip the closing curly bracket */
@@ -596,7 +696,7 @@ void ParseCompoundStatement(struct Token *tok, const int returnLabel, const int 
 
 /* ParseIf --- parse an 'if' statement */
 
-void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, const int continueLabel)
+void ParseIf(struct Token *tok, const struct Symbol *const fn, const int returnLabel, const int breakLabel, const int continueLabel)
 {
    const int elseLabel = AllocLabel('E');
    
@@ -611,7 +711,7 @@ void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, con
          EmitCompareIntConstant(0, "if: test");
          EmitBranchIfEqual(elseLabel, "if: branch");
          GetToken(tok);
-         ParseStatement(tok, returnLabel, breakLabel, continueLabel);
+         ParseStatement(tok, fn, returnLabel, breakLabel, continueLabel);
          
          if (tok->token == TELSE) {
             const int endifLabel = AllocLabel('I');
@@ -619,7 +719,7 @@ void ParseIf(struct Token *tok, const int returnLabel, const int breakLabel, con
             GetToken(tok);
             EmitJump(endifLabel, "if: jump to endif");
             EmitLabel(elseLabel);
-            ParseStatement(tok, returnLabel, breakLabel, continueLabel);
+            ParseStatement(tok, fn, returnLabel, breakLabel, continueLabel);
             EmitLabel(endifLabel);
          }
          else {
@@ -668,6 +768,7 @@ void ParseExpression(struct Token *tok)
       tmp.pLevel = 0;
       tmp.label = 0;
       tmp.fpOffset = 0;
+      tmp.readOnly = false;
       
       if ((stp = LookUpLocalSymbol(tok->str)) == NULL) {
          stp = LookUpExternSymbol(tok->str);
@@ -680,34 +781,60 @@ void ParseExpression(struct Token *tok)
       GetToken(tok);
 
       if ((tok->token == TINC) || (tok->token == TDEC)) {
-         LoadScalar(stp);
-
-         if (tok->token == TINC) {
-            EmitIncScalar(stp, 1);
+         if (stp->readOnly) {
+            Error("inc/dec 'const' object %s", stp->name);
          }
-         else if (tok->token == TDEC) {
-            EmitIncScalar(stp, -1);
+         else {
+            LoadScalar(stp);
+
+            if (tok->token == TINC) {
+               EmitIncScalar(stp, 1);
+            }
+            else if (tok->token == TDEC) {
+               EmitIncScalar(stp, -1);
+            }
          }
 
          GetToken(tok);
       }
       else if (tok->token == TOPAREN) {
+         int stackedBytes = 0;
+         
          GetToken(tok);
 
-         // Parse arguments here
-
          if (tok->token == TCPAREN) {
-            EmitCallFunction(tmp.name, "call function");
+            EmitCallFunction(tmp.name, "call function no actual parameters");
             GetToken(tok);
          }
          else {
-            Error("Expected ')' in function call");
+            do {
+               ParseExpression(tok);
+               
+               if (tok->token == TCOMMA) {
+                  GetToken(tok);
+               }
+               
+               // TODO: actual parameters other than 2 bytes long
+               Emit("pshs", "d", "<actual parameter>");
+               stackedBytes += 2;
+            } while (tok->token != TCPAREN);
+         
+            EmitCallFunction(tmp.name, "call function with parameters");
+            GetToken(tok);
+            //Error("Expected ')' in function call");
          }
+         
+         EmitStackCleanup(stackedBytes);
       }
       else if (tok->token == TASSIGN) {
          GetToken(tok);
          ParseExpression(tok);
-         StoreScalar(stp);
+         if (stp->readOnly) {
+            Error("Assignment to 'const' object %s", stp->name);
+         }
+         else {
+            StoreScalar(stp);
+         }
       }
       else {
          LoadScalar(stp);
@@ -725,6 +852,10 @@ void ParseExpression(struct Token *tok)
       LoadLabelAddr(strLit, tok->str);
       GetToken(tok);
    }
+   else if (tok->token == TCOMMA) {
+   }
+   else if (tok->token == TCPAREN) {
+   }
    else {
       Emit("nop", "", "<expression>");
       GetToken(tok);
@@ -736,7 +867,7 @@ void ParseExpression(struct Token *tok)
 
 /* ParseDo --- parse a 'do' statement */
 
-void ParseDo(struct Token *tok, const int returnLabel)
+void ParseDo(struct Token *tok, const struct Symbol *const fn, const int returnLabel)
 {
    const int blabel = AllocLabel('b');
    const int clabel = AllocLabel('c');
@@ -746,7 +877,7 @@ void ParseDo(struct Token *tok, const int returnLabel)
    EmitLabel(dlabel);
 
    GetToken(tok);
-   ParseStatement(tok, returnLabel, blabel, clabel);
+   ParseStatement(tok, fn, returnLabel, blabel, clabel);
 
    if (tok->token != TWHILE) {
       Error("Expected 'while' after 'do'");
@@ -837,7 +968,7 @@ void ParseGoto(struct Token *tok)
 
 /* ParseWhile --- parse a 'while' statement */
 
-void ParseWhile(struct Token *tok, const int returnLabel)
+void ParseWhile(struct Token *tok, const struct Symbol *const fn, const int returnLabel)
 {
    const int blabel = AllocLabel('b');
    const int clabel = AllocLabel('c');
@@ -858,7 +989,7 @@ void ParseWhile(struct Token *tok, const int returnLabel)
       if (tok->token == TCPAREN) {
          GetToken(tok);
          
-         ParseStatement(tok, returnLabel, blabel, clabel);
+         ParseStatement(tok, fn, returnLabel, blabel, clabel);
          EmitJump(clabel, "while: loop");
       }
       else {
@@ -875,7 +1006,7 @@ void ParseWhile(struct Token *tok, const int returnLabel)
 
 /* ParseFor --- parse a 'for' statement */
 
-void ParseFor(struct Token *tok, const int returnLabel)
+void ParseFor(struct Token *tok, const struct Symbol *const fn, const int returnLabel)
 {
    const int blabel = AllocLabel('b');
    const int clabel = AllocLabel('c');
@@ -912,7 +1043,7 @@ void ParseFor(struct Token *tok, const int returnLabel)
          GetToken(tok);
          
          EmitLabel(slabel);
-         ParseStatement(tok, returnLabel, blabel, clabel);
+         ParseStatement(tok, fn, returnLabel, blabel, clabel);
          EmitJump(clabel, "for: loop");
       }
       else {
@@ -929,7 +1060,7 @@ void ParseFor(struct Token *tok, const int returnLabel)
 
 /* ParseSwitch --- parse a 'switch' statement */
 
-void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLabel)
+void ParseSwitch(struct Token *tok, const struct Symbol *const fn, const int returnLabel, const int continueLabel)
 {
    const int blabel = AllocLabel('b');
    const int jlabel = AllocLabel('J'); // Label for jump over labelled_compound_statement to compare/branch chain
@@ -1005,7 +1136,7 @@ void ParseSwitch(struct Token *tok, const int returnLabel, const int continueLab
                   }
                }
                else {
-                  ParseStatement(tok, returnLabel, blabel, continueLabel);
+                  ParseStatement(tok, fn, returnLabel, blabel, continueLabel);
                }
             }
 

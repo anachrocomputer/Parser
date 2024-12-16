@@ -14,6 +14,7 @@ struct Symbol {
    int pLevel;
    int label;
    int fpOffset;
+   bool readOnly;
 };
 
 void SymTabInit(void);

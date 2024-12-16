@@ -42,7 +42,7 @@ char *NameOfTheShip(void)
          return (17);
    }
    if ('\0')
-      return;
+      return 0;
    else
       Tea = "\xff";
    0xff;

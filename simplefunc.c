@@ -9,31 +9,34 @@ int Rum;
 int Whale;
 
 // Assembler-coded functions in the run-time library
-void vduchar(void);
-void vdustr(void);
+void vduchar(const char ch);
+void vdustr(const char *str);
 int getchar(void);
-void hex2ou(void);
-void hex4ou(void);
-void hex8ou(void);
+void hex2ou(int h);
+void hex4ou(int h);
+void hex8ou(int h);
 void exit(void);
 
-void PutToSea(void);
+void PutToSea(const int heading, char ocean);
 void newline(void);
 
 /* PutToSea --- test assembler-coded VDU output functions */
 
-void PutToSea(void)
+void PutToSea(const int heading, char ocean)
 {
-   float heading;
+   int rum;
+   const int parrot;
    
-   'P';
-   vduchar();
-   'u';
-   vduchar();
-   't';
-   vduchar();
-   "ToSea()\r\n";
-   vdustr();
+   rum = 5;
+   
+   vduchar('P');
+   vduchar('u');
+   vduchar('t');
+   vdustr("ToSea()\r\n");
+   
+   parrot;
+   heading;
+   ocean;
 }
 
 
@@ -45,8 +48,7 @@ void SugarAndTeaAndRum(void)
       Sugar = 'A';
       
       for (Tea = 40; Tea; Tea--) {
-         Sugar++;
-         vduchar();
+         vduchar(Sugar++);
       }
       
       newline();
@@ -66,8 +68,7 @@ void ToBringUs(void)
       sugar = 'A';
       
       for (tea = 40; tea; tea--) {
-         sugar++;
-         vduchar();
+         vduchar(sugar++);
       }
       
       newline();
@@ -85,8 +86,7 @@ void DippedDown(void)
    sugar = 'A';
    
    for (tea = 40; tea; tea--) {
-      sugar++;
-      vduchar();
+      vduchar(sugar++);
    }
 }
 
@@ -112,13 +112,11 @@ void HeaveHo(void)
    
    for (Rum = 10; Rum; Rum--) {
       if (Sugar) {
-         "Even ";
-         vdustr();
+         vdustr("Even ");
          Sugar--;
       }
       else {
-         "Odd ";
-         vdustr();
+         vdustr("Odd ");
          Sugar++;
       }
    }
@@ -131,14 +129,12 @@ void HeaveHo(void)
 
 void TakeOurLeaveAndGo(void)
 {
-   "The tonguing is done";
-   vdustr();
+   vdustr("The tonguing is done");
    newline();
    
    exit();
    
-   "We're gone"; // Should not print
-   vdustr();
+   vdustr("We're gone");  // Should not print
 }
 
 
@@ -154,8 +150,7 @@ char *WhaleInTow(void)
       Sugar = 'A';
       while (Tea) {
          Tea--;
-         Sugar++;
-         vduchar();
+         vduchar(Sugar++);
       }
       rum--;
       newline();
@@ -174,24 +169,20 @@ void SixteenMen(void)
    hex = 0xAA;
    
    for (Tea = 15; Tea; Tea--) {
-      hex++;
-      hex2ou();
-      ' ';
-      vduchar();
+      hex2ou(hex++);
+      vduchar(' ');
    }
 
    newline();
    
    hex = 0xbeef;
    
-   hex;
-   hex4ou();
+   hex4ou(hex);
    newline();
    
    hex = 0xdead;
 
-   hex;
-   hex8ou();
+   hex8ou(hex);
    newline();
 }
 
@@ -231,14 +222,10 @@ void ThereOnceWasAShip(void)
    for (hold = 5; hold; hold--) {
       goods = Cargo();
       
-      hold;
-      hex2ou();
-      ':';
-      vduchar();
-      goods;
-      vdustr();
-      ' ';
-      vduchar();
+      hex2ou(hold);
+      vduchar(':');
+      vdustr(goods);
+      vduchar(' ');
    }
    
    newline();
@@ -247,30 +234,23 @@ void ThereOnceWasAShip(void)
 
 void newline(void)
 {
-   '\r';
-   vduchar();
-   '\n';
-   vduchar();
+   vduchar('\r');
+   vduchar('\n');
 }
 
 
 void main(void)
 {
-   'm';
-   vduchar();
-   'a';
-   vduchar();
-   'i';
-   vduchar();
-   'n';
-   vduchar();
+   vduchar('m');
+   vduchar('a');
+   vduchar('i');
+   vduchar('n');
    newline();
 
-   PutToSea();
+   PutToSea(270, 'A');
    
    for (Sugar = 42; Sugar; Sugar--) {
-      '*';
-      vduchar();
+      vduchar('*');
    }
 
    newline();
@@ -342,8 +322,7 @@ void main(void)
          break;
       }
       
-      Bow;
-      vdustr();
+      vdustr(Bow);
       newline();
    }
 }

@@ -20,6 +20,7 @@ int AllocLabel(const char purpose);
 void EmitLabel(const int label);
 void EmitFunctionEntry(const char name[], const int nBytes, const int nRegister);
 void EmitFunctionExit(const int returnLabel, const int nRegister);
+void EmitStackCleanup(const int nBytes);
 void EmitStaticCharArray(const struct StringConstant *sc, const char name[]);
 void LoadScalar(const struct Symbol *const sym);
 void StoreScalar(const struct Symbol *const sym);

@@ -139,6 +139,19 @@ void EmitFunctionExit(const int returnLabel, const int nRegister)
 }
 
 
+/* EmitStackCleanup --- emit code to clean up stack after a funtion call */
+
+void EmitStackCleanup(const int nBytes)
+{
+   if (nBytes != 0) {
+      char buf[32];
+      
+      snprintf(buf, sizeof (buf), "%d,s", nBytes);
+      Emit("leas", buf, "clear actual parameters off stack");
+   }
+}
+
+
 /* EmitStaticCharArray --- emit declaration for an initialised char array or string */
 
 void EmitStaticCharArray(const struct StringConstant *sc, const char name[])
@@ -410,6 +423,8 @@ void StoreScalar(const struct Symbol *const sym)
          Emit("stq", target, comment);
          GenTargetOperand(sym, 4, target);
          Emit("stq", target, "Store low 32 bits");
+         break;
+      case T_VOID:
          break;
       }
    }

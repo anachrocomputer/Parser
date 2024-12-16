@@ -40,6 +40,7 @@ bool AddExternSymbol(const struct Symbol *const sym)
    SymTab[NextSym].pLevel = sym->pLevel;
    SymTab[NextSym].label = sym->label;
    SymTab[NextSym].fpOffset = sym->fpOffset;
+   SymTab[NextSym].readOnly = sym->readOnly;
    
    NextSym++;
    
@@ -81,6 +82,7 @@ bool AddLocalSymbol(const struct Symbol *const sym)
    LocalSymTab[NextLocalSym].pLevel = sym->pLevel;
    LocalSymTab[NextLocalSym].label = sym->label;
    LocalSymTab[NextLocalSym].fpOffset = sym->fpOffset;
+   LocalSymTab[NextLocalSym].readOnly = sym->readOnly;
    
    NextLocalSym++;
    
