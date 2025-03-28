@@ -139,7 +139,7 @@ void EmitFunctionExit(const int returnLabel, const int nRegister)
 }
 
 
-/* EmitStackCleanup --- emit code to clean up stack after a funtion call */
+/* EmitStackCleanup --- emit code to clean up stack after a function call */
 
 void EmitStackCleanup(const int nBytes)
 {
