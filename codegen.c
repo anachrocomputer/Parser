@@ -33,14 +33,31 @@ bool OpenAssemblerFile(const char fname[])
    
    Asm = fopen(asmName, "w");
    
-   fprintf(Asm, "        setdp 0\n");
-   fprintf(Asm, "        org   $0400\n");
+   fprintf(Asm, "         setdp 0\n");
+   fprintf(Asm, "         org   $0400\n");
    fprintf(Asm, "appEntry sts  saveSP            ; Save initial SP in case we call 'exit()'\n");
+#ifdef SIMULATOR
+   fprintf(Asm, "         lda  #3                ; SIM Into CBREAK mode\n");
+   fprintf(Asm, "         swi                    ; SIM\n");
+#endif
    fprintf(Asm, "         jsr  _main\n");
-   fprintf(Asm, "appExit  rts\n");
+   fprintf(Asm, "appExit\n");
+#ifdef SIMULATOR
+   fprintf(Asm, "         lda  #4                ; SIM Out of CBREAK mode\n");
+   fprintf(Asm, "         swi                    ; SIM\n");
+   fprintf(Asm, "         lda  #0                ; SIM Terminate\n");
+   fprintf(Asm, "         swi                    ; SIM\n");
+#else
+   fprintf(Asm, "         rts\n");
+#endif   /* SIMULATOR */
    fprintf(Asm, "saveSP   fdb  0                 ; Space to store initial SP\n");
    fprintf(Asm, "_exit    lds  saveSP            ; Recover initial SP\n");
    fprintf(Asm, "         bra  appExit           ; Branch to instruction after 'main()'\n");
+#ifdef SIMULATOR
+   fprintf(Asm, "_putchar lda  #5                ; SIM Print char in B register\n");
+   fprintf(Asm, "         swi                    ; SIM\n");
+   fprintf(Asm, "         rts\n");
+#else
    fprintf(Asm, "_vduchar tfr  b,a               ; Move char into A register\n");
    fprintf(Asm, "         jmp  $a020             ; Send one char to the VDU\n");
    fprintf(Asm, "_vdustr  tfr  d,x               ; Move pointer into X register\n");
@@ -57,7 +74,8 @@ bool OpenAssemblerFile(const char fname[])
    fprintf(Asm, "         jsr  $a189             ; Call hex4ou in EPROM (hi)\n");
    fprintf(Asm, "         puls d                 ; Restore D\n");
    fprintf(Asm, "         jmp  $a189             ; Call hex4ou in EPROM (lo)\n");
-
+#endif   /* SIMULATOR */
+   
    return (true);
 }
 
