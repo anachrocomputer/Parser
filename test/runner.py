@@ -1,4 +1,4 @@
-# runner --- run all the C compiler tests                      2022-06-21
+# runner --- run all the C compiler tests                      2026-06-21
 
 import os
 import glob

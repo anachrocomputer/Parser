@@ -1,4 +1,4 @@
-/* main --- test an empty function called from main */
+/* function --- test an empty function called from main */
 
 void putchar();
 
