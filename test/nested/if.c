@@ -1,21 +1,28 @@
-/* if --- test nested 'if' statements */
+/* if --- test nested 'if' statements                       2026-06-23 */
+
+void putchar(int);
+
+void BillyOTea(int ship, int whale)
+{
+   if (ship)
+      if (whale)
+         putchar('d');
+      else
+         putchar('c');
+   else
+      if (whale)
+         putchar('b');
+      else
+         putchar('a');
+         
+   putchar('\n');
+}
 
 void main(void)
 {
-   int ship = 0;
-   int whale = 1;
-   
-   if (ship)
-      if (whale)
-         putchar('a');  // output: a
-      else
-         putchar('b');
-   else
-      if (whale)
-         putchar('c');
-      else
-         putchar('d');
-         
-   putchar('\n');
+   BillyOTea(0, 0);  // output: a
+   BillyOTea(0, 1);  // output: b
+   BillyOTea(1, 0);  // output: c
+   BillyOTea(1, 1);  // output: d
 }
 

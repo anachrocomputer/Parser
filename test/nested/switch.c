@@ -1,20 +1,15 @@
-/* switch --- test nested 'switch' statements */
+/* switch --- test nested 'switch' statements               2026-06-23 */
 
-void main(void)
+void Ship(int sugar, int tea)
 {
-   int i = 1;
-   int j = 1;
-   
-   switch (i) {
+   switch (sugar) {
    case 0:
-      switch (j) {
+      switch (tea) {
       case 0:
          putchar('a');
-         putchar('\n');
          break;
       case 1:
          putchar('b');
-         putchar('\n');
          break;
       }
       break;
@@ -22,14 +17,22 @@ void main(void)
       switch (j) {
       case 0:
          putchar('c');
-         putchar('\n');
          break;
       case 1:
-         putchar('d');  // output: d
-         putchar('\n');
+         putchar('d');
          break;
       }
       break;
    }
+
+   putchar('\n');
+}
+
+void main(void)
+{
+   Ship(0, 0);    // output: a
+   Ship(0, 1);    // output: b
+   Ship(1, 0);    // output: c
+   Ship(1, 1);    // output: d
 }
 
