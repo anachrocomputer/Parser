@@ -1,0 +1,26 @@
+/* newlines --- simple main function but with newlines      2026-06-27 */
+
+void
+putchar
+(
+)
+;
+
+void
+main
+(
+void
+)
+{
+putchar
+(
+'a'
+)
+;
+// output: a
+putchar
+(
+'\n'
+)
+;   
+}
