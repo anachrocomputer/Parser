@@ -9,6 +9,7 @@ def runtest(testClass, name, path):
     asm = "asm6809 --6309 " + path + ".asm"
     sim = "sim6809 -n -g -q " + path + ".hex"
     print(cc)
+    # check here for a file called 'core'
     print(asm)
     print(sim)
 
