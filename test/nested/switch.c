@@ -1,5 +1,7 @@
 /* switch --- test nested 'switch' statements               2026-06-23 */
 
+void putchar();
+
 void Ship(int sugar, int tea)
 {
    switch (sugar) {
@@ -14,7 +16,7 @@ void Ship(int sugar, int tea)
       }
       break;
    case 1:
-      switch (j) {
+      switch (tea) {
       case 0:
          putchar('c');
          break;

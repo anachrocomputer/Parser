@@ -1,5 +1,7 @@
 /* arity1 --- test a void function with one parameter       2026-06-25 */
 
+void putchar();
+
 void Wellerman(int sugar);
 
 void Wellerman(int sugar)

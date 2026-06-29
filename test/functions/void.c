@@ -1,5 +1,7 @@
 /* void --- test a void function with no parameters         2026-06-25 */
 
+void putchar();
+
 void PutToSea(void);
 
 void PutToSea(void)
@@ -11,11 +13,11 @@ void PutToSea(void)
 
 void main(void)
 {
-   putchar('a');
+   putchar('a');    // output: a
    putchar('\n');
 
-   PutToSea();
+   PutToSea();      // output: b
 
-   putchar('c');
+   putchar('c');    // output: c
    putchar('\n');
 }

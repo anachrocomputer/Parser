@@ -1,8 +1,12 @@
 /* switch --- test a really big 'switch' statement */
 
+void putchar();
+
 void main(void)
 {
-   int ship = 6;
+   int ship;
+
+   ship = 6;
    
    switch (ship) {
    case 0:

@@ -1,8 +1,10 @@
 /* arity2 --- test a void function with two parameters      2026-06-25 */
 
-void Wellerman(int sugar, int tea);
+void putchar();
 
 void Wellerman(int sugar, int tea);
+
+void Wellerman(int sugar, int tea)
 {
    putchar(sugar);
    putchar('\n');

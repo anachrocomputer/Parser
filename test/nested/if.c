@@ -1,6 +1,6 @@
 /* if --- test nested 'if' statements                       2026-06-23 */
 
-void putchar(int);
+void putchar();
 
 void BillyOTea(int ship, int whale)
 {

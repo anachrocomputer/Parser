@@ -1,6 +1,6 @@
 /* while --- test nested 'while' loops                      2026-06-25 */
 
-void putchar(int);
+void putchar();
 
 void main(void)
 {
@@ -14,7 +14,7 @@ void main(void)
 
       tea = 10;
       while (tea) {
-         putchar(sugar++); // output: ABCDEFGHI
+         putchar(sugar++); // output: ABCDEFGHIJ
          tea--;
       }
 

@@ -1,5 +1,7 @@
 /* int --- test a function returning int with no parameters 2026-06-25 */
 
+void putchar();
+
 int PutToSea(void);
 
 int PutToSea(void)
