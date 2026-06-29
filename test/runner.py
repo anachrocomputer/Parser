@@ -1,7 +1,7 @@
 # runner --- run all the C compiler tests                      2026-06-21
 
 import os
-import subprocess
+from subprocess import Popen, PIPE
 import glob
 
 def runtest(testClass, name, path):
@@ -12,32 +12,56 @@ def runtest(testClass, name, path):
     hex = path + ".hex"
 
     args = ["../parser", src]
-    print(" ".join(args))
+    #print(" ".join(args))
 
-    with subprocess.Popen(args, stdout=subprocess.PIPE) as compiler:
-       msgs = compiler.stdout.read()
+    lNum = 1
+    with Popen(args, stderr=PIPE) as compiler:
+        for line in compiler.stderr:
+            print(lNum, line.decode("utf-8").rstrip())
+            lNum += 1
+            
+            if lNum > 20:
+                print("Compiler output grows without bound")
+                break
     
-    print("Compiler output: '" + msgs.decode("utf-8") + "'")
-    
+    if compiler.returncode == -11:
+        print("Compiler SEGFAULT")
+    elif compiler.returncode == -13:
+        print("Compiler terminated by SIGPIPE")
+    elif compiler.returncode != 0:
+        print("Compiler return code: ", compiler.returncode)
+        
     # check here for a file called 'core'
 
+    if compiler.returncode != 0:
+        return
+
     args = ["/home/john/bin/asm6809", "--6809", "-H", "-o", hex, "-l", lst, asm]
-    print(" ".join(args))
+    #print(" ".join(args))
     
-    with subprocess.Popen(args, stdout=subprocess.PIPE) as assembler:
-       msgs = assembler.stdout.read()
+    with Popen(args, stdout=PIPE) as assembler:
+        msgs = assembler.stdout.read()
     
-    print("Assembler output: '" + msgs.decode("utf-8") + "'")
+    msgs = msgs.decode("utf-8")
+    
+    if msgs != '':
+        print("Assembler output: '" + msgs + "'")
+
+    #print(assembler.returncode)
+    if assembler.returncode != 0:
+        return
 
     args = ["/home/john/bin/sim6809", "-n", "-g", "-q", hex]
-    print(" ".join(args))
+    #print(" ".join(args))
 
-    with subprocess.Popen(args, stdout=subprocess.PIPE) as simulator:
-       msgs = simulator.stdout.read()
+    with Popen(args, stdout=PIPE) as simulator:
+        msgs = simulator.stdout.read()
     
     print("Simulator output: '" + msgs.decode("utf-8") + "'")
 
-    input("Press Enter to continue...")
+    #print(simulator.returncode)
+    #if simulator.returncode < 0:
+    #    return
 
 
 for d in os.listdir():
@@ -55,4 +79,5 @@ for d in os.listdir():
 #           print("TEST  : ", os.path.splitext(c))
             name = os.path.splitext(os.path.split(c)[1])[0]
             runtest(d, name, os.path.splitext(c)[0])
+            input("Press Enter to continue...")
         
