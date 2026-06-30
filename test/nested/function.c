@@ -1,4 +1,4 @@
-/* function --- test nested function calls */
+/* function --- test nested void function calls             2026-06-25 */
 
 void putchar();
 

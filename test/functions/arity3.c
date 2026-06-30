@@ -1,8 +1,8 @@
 /* arity3 --- test a void function with three parameters    2026-06-25 */
 
-void Wellerman(int sugar, int tea, int rum);
+void putchar();
 
-void Wellerman(int sugar, int tea, int rum);
+void Wellerman(int sugar, int tea, int rum)
 {
    putchar(sugar);
    putchar('\n');

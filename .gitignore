@@ -3,4 +3,6 @@
 *.hex
 *.srec
 parser
-
+test/fib
+test/*/*.asm
+test/results.html
