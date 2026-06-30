@@ -3,6 +3,7 @@
 import os
 from subprocess import Popen, PIPE
 import glob
+import re
 
 def runtest(testClass, name, path):
     print("Running '" + testClass + "', test '" + name + "' in '" + path + "'")
@@ -10,14 +11,31 @@ def runtest(testClass, name, path):
     asm = path + ".asm"
     lst = path + ".lst"
     hex = path + ".hex"
+    
+    output = ""
+    expectations = 0
 
+    with open(src, "r") as srcFile:
+        for line in srcFile:
+            if line[0:2] != "//":
+                match = OUTPUT_EXPECT.search(line)
+                if match:
+                    output += match.group(1) + "\n"
+                    expectations += 1
+
+    if output == "" or expectations == 0:
+        print("Test error: no expected output")
+        return (False, "Test error")
+    
+    #print("Expected output: '" + output + "'", expectations)
+    
     args = ["../parser", src]
     #print(" ".join(args))
 
     lNum = 1
     with Popen(args, stderr=PIPE) as compiler:
         for line in compiler.stderr:
-            print(lNum, line.decode("utf-8").rstrip())
+            print(line.decode("utf-8").rstrip())
             lNum += 1
             
             if lNum > 20:
@@ -39,13 +57,14 @@ def runtest(testClass, name, path):
     args = ["/home/john/bin/asm6809", "--6809", "-H", "-o", hex, "-l", lst, asm]
     #print(" ".join(args))
     
-    with Popen(args, stdout=PIPE) as assembler:
-        msgs = assembler.stdout.read()
+    with Popen(args, stderr=PIPE) as assembler:
+        msgs = assembler.stderr.read()
     
     msgs = msgs.decode("utf-8")
     
     if msgs != '':
-        print("Assembler output: '" + msgs + "'")
+        print("Assembler output:")
+        print(msgs)
 
     #print(assembler.returncode)
     if assembler.returncode != 0:
@@ -57,14 +76,21 @@ def runtest(testClass, name, path):
     with Popen(args, stdout=PIPE) as simulator:
         msgs = simulator.stdout.read()
     
-    print("Simulator output: '" + msgs.decode("utf-8", errors="replace") + "'")
+    simOut = msgs.decode("utf-8", errors="replace")
+    #print("Simulator output: '" + simOut + "'")
 
     #print(simulator.returncode)
     #if simulator.returncode < 0:
     #    return
     
+    if output != simOut:
+        print("Program output differs from expected output")
+        return (False, "Output")
+
     return (True, "")
 
+
+OUTPUT_EXPECT = re.compile(r'// output: ?(.*)')
 
 with open("results.html", "w") as html:
     html.write("<HTML>\n")
@@ -92,14 +118,14 @@ with open("results.html", "w") as html:
                 name = os.path.splitext(os.path.split(c)[1])[0]
                 (result, msg) = runtest(d, name, os.path.splitext(c)[0])
                 html.write("<TR ALIGN=LEFT>\n")
-                html.write("<TD>%s</TD>\n" % c)
+                html.write("<TD><A HREF=\"%s\">%s</A></TD>\n" % (c, c))
                 if result:
                     html.write("<TD COLOR=\"#00ff00\">PASS</TD>\n")
                 else:
                     html.write("<TD COLOR=\"#ff0000\">FAIL</TD>\n")
                 html.write("<TD>%s</TD>\n" % msg)
                 html.write("</TR>\n")
-                input("Press Enter to continue...")
+                #input("Press Enter to continue...")
             
     html.write("</TABLE>\n")
     html.write("</BODY>\n")

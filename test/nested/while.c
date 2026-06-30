@@ -15,6 +15,15 @@ void main(void)
       tea = 10;
       while (tea) {
          putchar(sugar++); // output: ABCDEFGHIJ
+                           // output: ABCDEFGHIJ
+                           // output: ABCDEFGHIJ
+                           // output: ABCDEFGHIJ
+                           // output: ABCDEFGHIJ
+                           // output: ABCDEFGHIJ
+                           // output: ABCDEFGHIJ
+                           // output: ABCDEFGHIJ
+                           // output: ABCDEFGHIJ
+                           // output: ABCDEFGHIJ
          tea--;
       }
 

@@ -17,7 +17,7 @@ putchar
 'a'
 )
 ;
-// output: a
+ // output: a
 putchar
 (
 '\n'
