@@ -11,6 +11,7 @@ def runtest(testClass, name, path):
     asm = path + ".asm"
     lst = path + ".lst"
     hex = path + ".hex"
+    out = path + ".out"
     
     output = ""
     expectations = 0
@@ -25,18 +26,18 @@ def runtest(testClass, name, path):
 
     if output == "" or expectations == 0:
         print("Test error: no expected output")
-        return (False, "Test error")
+        return (False, "Test error", "")
     
     #print("Expected output: '" + output + "'", expectations)
     
     args = ["../parser", src]
     #print(" ".join(args))
 
-    lNum = 1
+    lNum = 0
     with Popen(args, stderr=PIPE) as compiler:
         for line in compiler.stderr:
-            print(line.decode("utf-8").rstrip())
             lNum += 1
+            print(line.decode("utf-8").rstrip())
             
             if lNum > 20:
                 print("Compiler output grows without bound")
@@ -44,13 +45,16 @@ def runtest(testClass, name, path):
     
     if compiler.returncode == -11:
         print("Compiler SEGFAULT")
-        return (False, "Compiler SEGFAULT")
+        return (False, "Compiler SEGFAULT", "")
     elif compiler.returncode == -13:
         print("Compiler terminated by SIGPIPE")
-        return (False, "Compiler loop")
+        return (False, "Compiler loop", "")
     elif compiler.returncode != 0:
         print("Compiler return code: ", compiler.returncode)
-        return (False, "Compiler returned %d" % compiler.returncode)
+        return (False, "Compiler returned %d" % compiler.returncode, "")
+    elif lNum > 0:
+        print("%d compile-time error(s)" % lNum)
+        return (False, "Compilation error", "")
         
     # check here for a file called 'core'
 
@@ -68,7 +72,7 @@ def runtest(testClass, name, path):
 
     #print(assembler.returncode)
     if assembler.returncode != 0:
-        return (False, "Assembler")
+        return (False, "Assembler error", "")
 
     args = ["/home/john/bin/sim6809", "-n", "-g", "-q", hex]
     #print(" ".join(args))
@@ -84,10 +88,13 @@ def runtest(testClass, name, path):
     #    return
     
     if output != simOut:
-        print("Program output differs from expected output")
-        return (False, "Output")
+        with open(out, "w") as outFile:
+            outFile.write(simOut)
 
-    return (True, "")
+        print("Program output differs from expected output")
+        return (False, "Output mismatch", out)
+
+    return (True, "", "")
 
 
 OUTPUT_EXPECT = re.compile(r'// output: ?(.*)')
@@ -99,7 +106,7 @@ with open("results.html", "w") as html:
     html.write("</HEAD>\n")
     html.write("<BODY>\n")
     html.write("<H1 ALIGN=CENTER>Compiler Test Results</H1>\n")
-    html.write("<TABLE COLS=3 BORDER=2>\n")
+    html.write("<TABLE COLS=4 BORDER=2>\n")
 
     for d in os.listdir():
         if os.path.isfile(d):
@@ -107,8 +114,8 @@ with open("results.html", "w") as html:
             pass
         else:
 #           print("DIR : ", d)
-            html.write("<TR ALIGN=CENTER><TD COLSPAN=3>%s</TD></TR>\n" % d)
-            
+            html.write("<TR ALIGN=CENTER><TD COLSPAN=4>%s</TD></TR>\n" % d)
+                              
 #           for f in os.listdir(path=d):
 #               print("SUB-FILE: ", f)
 
@@ -116,7 +123,7 @@ with open("results.html", "w") as html:
 #               print("C FILE: ", c)
 #               print("TEST  : ", os.path.splitext(c))
                 name = os.path.splitext(os.path.split(c)[1])[0]
-                (result, msg) = runtest(d, name, os.path.splitext(c)[0])
+                (result, msg, out) = runtest(d, name, os.path.splitext(c)[0])
                 html.write("<TR ALIGN=LEFT>\n")
                 html.write("<TD><A HREF=\"%s\">%s</A></TD>\n" % (c, c))
                 if result:
@@ -124,6 +131,10 @@ with open("results.html", "w") as html:
                 else:
                     html.write("<TD COLOR=\"#ff0000\">FAIL</TD>\n")
                 html.write("<TD>%s</TD>\n" % msg)
+                if out != "":
+                   html.write("<TD><A HREF=\"%s\">%s</A></TD>\n" % (out, out))
+                else:
+                   html.write("<TD></TD>\n")
                 html.write("</TR>\n")
                 #input("Press Enter to continue...")
             
