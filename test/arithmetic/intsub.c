@@ -1,4 +1,4 @@
-/* intsub --- verify integer aubtraction                    2026-07-02 */
+/* intsub --- verify integer subtraction                    2026-07-02 */
 
 void puti();
 
