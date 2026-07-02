@@ -192,6 +192,23 @@ bool OpenAssemblerFile(const char fname[])
    fprintf(Asm, "         tfr  u,s               ; Deallocate stack frame\n");
    fprintf(Asm, "         puls u                 ; Restore frame pointer\n");
    fprintf(Asm, "         rts\n");
+   fprintf(Asm, "; void putd(const double d);\n");
+   fprintf(Asm, "_putd    pshs u                 ; Save old frame pointer\n");
+   fprintf(Asm, "         tfr  s,u               ; Make new frame pointer\n");
+   fprintf(Asm, "         ldd  4,u               ; Pick up first parameter MSB\n");
+   fprintf(Asm, "         ldd  6,u               ; Pick up first parameter LSB\n");
+   /* Implement putd() here */
+   fprintf(Asm, "         ldb  #10               ; Load NEWLINE\n");
+#ifdef SIMULATOR
+   fprintf(Asm, "         lda  #5                ; SIM Print char in B register\n");
+   fprintf(Asm, "         swi                    ; SIM\n");
+#else
+   fprintf(Asm, "         tfr  b,a               ; Move char into A register\n");
+   fprintf(Asm, "         jsr  $a020             ; Send one char to the VDU\n");
+#endif   /* SIMULATOR */
+   fprintf(Asm, "         tfr  u,s               ; Deallocate stack frame\n");
+   fprintf(Asm, "         puls u                 ; Restore frame pointer\n");
+   fprintf(Asm, "         rts\n");
 #ifdef SIMULATOR
    fprintf(Asm, "_vdustr  tfr  d,x               ; Move pointer into X register\n");
    fprintf(Asm, "         jmp  $a014             ; Print a nul-terminated string\n");

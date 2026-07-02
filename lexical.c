@@ -1019,6 +1019,10 @@ static int GetOneToken(struct Token *tok)
             tok->str[i++] = ch;
             state = 27;
          }
+         else if ((ch == 'E') || (ch == 'e')) {		// E.g. 0e4, a valid floating-point constant
+            tok->str[i++] = ch;
+            state = 28;
+         }
          else if ((ch == 'L') || (ch == 'l')) {
             tok->str[i++] = ch;
          }
@@ -1041,6 +1045,10 @@ static int GetOneToken(struct Token *tok)
          else if (ch == '.') {
             tok->str[i++] = ch;
             state = 27;
+         }
+         else if ((ch == 'E') || (ch == 'e')) {		// E.g. 01e4, a valid floating-point constant
+            tok->str[i++] = ch;
+            state = 28;
          }
          else if ((ch == 'L') || (ch == 'l')) {
             tok->str[i++] = ch;
