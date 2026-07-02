@@ -235,7 +235,7 @@ int ParseDeclaration(struct Token *tok)
       case TOPAREN:  // Function
          PrintSyntax("(");
          GetToken(tok);
-         paramSize = 0;
+         paramSize = 2;
          
          // Function's formal parameters
          while ((tok->token == TINT) || (tok->token == TCHAR) ||
