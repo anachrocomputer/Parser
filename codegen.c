@@ -92,6 +92,18 @@ bool OpenAssemblerFile(const char fname[])
    fprintf(Asm, "         tfr  u,s               ; Deallocate stack frame\n");
    fprintf(Asm, "         puls u                 ; Restore frame pointer\n");
    fprintf(Asm, "         rts\n");
+
+   fprintf(Asm, "; void putu(const unsigned int u);\n");
+   fprintf(Asm, "_putu    pshs u                 ; Save old frame pointer\n");
+   fprintf(Asm, "         tfr  s,u               ; Make new frame pointer\n");
+   fprintf(Asm, "         ldd  4,u               ; Pick up first parameter\n");
+   fprintf(Asm, "         pshs y                 ; Save any register variable in Y\n");
+   fprintf(Asm, "         ldx  #decbuf           ; X points to buffer for decimal digits\n");
+   fprintf(Asm, "         jsr  bn2decu           ; Convert 16-bit binary to unsigned ASCII\n");
+   fprintf(Asm, "         puls y                 ; Restore any register variable that we saved\n");
+   fprintf(Asm, "         ldx  #decbuf+1         ; X points to buffer\n");
+   fprintf(Asm, "         bra  puts1             ; Heinous jump into the middle of puts()\n");
+
    fprintf(Asm, "; void puti(const int i);\n");
    fprintf(Asm, "decbuf   rmb     16             ; Decimal digit buffer\n");
    fprintf(Asm, "_puti    pshs u                 ; Save old frame pointer\n");
@@ -105,9 +117,9 @@ bool OpenAssemblerFile(const char fname[])
    fprintf(Asm, "         bra  puts1             ; Heinous jump into the middle of puts()\n");
    
    fprintf(Asm, "bn2dec          std     1,x               ; Save data in buffer\n");
-   fprintf(Asm, ";               bpl     cnvert            ; Branch if data positive\n");
-   fprintf(Asm, ";               ldd     #0                ; else take positive value\n");
-   fprintf(Asm, ";               subd    1,x\n");
+   fprintf(Asm, "               bpl     cnvert            ; Branch if data positive\n");
+   fprintf(Asm, "               ldd     #0                ; else take positive value\n");
+   fprintf(Asm, "               subd    1,x\n");
    fprintf(Asm, "; Initialise string length to zero\n");
    fprintf(Asm, "cnvert          clr     ,x                ; String length = 0\n");
    fprintf(Asm, "; Divide binary data by 10 by subtracting powers of ten\n");
@@ -143,11 +155,11 @@ bool OpenAssemblerFile(const char fname[])
    fprintf(Asm, "; Check if original binary data was negative\n");
    fprintf(Asm, "; If so, put ASCII - at front of buffer\n");
    fprintf(Asm, "                lda     ,x+               ; Get length byte (not including sign)\n");
-   fprintf(Asm, ";               ldb     ,x                ; Get high byte of data\n");
-   fprintf(Asm, ";               bpl     bufload           ; Branch if data positive\n");
-   fprintf(Asm, ";               ldb     #'-'              ; Otherwise, get ASCII minus sign\n");
-   fprintf(Asm, ";               stb     ,x+               ; Store minus sign in buffer\n");
-   fprintf(Asm, ";               inc     -2,x              ; Add 1 to length byte for sign\n");
+   fprintf(Asm, "               ldb     ,x                ; Get high byte of data\n");
+   fprintf(Asm, "               bpl     bufload           ; Branch if data positive\n");
+   fprintf(Asm, "               ldb     #'-'              ; Otherwise, get ASCII minus sign\n");
+   fprintf(Asm, "               stb     ,x+               ; Store minus sign in buffer\n");
+   fprintf(Asm, "               inc     -2,x              ; Add 1 to length byte for sign\n");
    fprintf(Asm, "; Move string of digits from stack to buffer\n");
    fprintf(Asm, "; Most significant digit is at top of stack\n");
    fprintf(Asm, "; Convert digits to ASCII by adding ASCII 0\n");
@@ -159,22 +171,42 @@ bool OpenAssemblerFile(const char fname[])
    fprintf(Asm, "                clr     ,x                ; Add terminator to buffer\n");
    fprintf(Asm, "                rts\n");
 
-   fprintf(Asm, "; void putu(const unsigned int u);\n");
-   fprintf(Asm, "_putu    pshs u                 ; Save old frame pointer\n");
-   fprintf(Asm, "         tfr  s,u               ; Make new frame pointer\n");
-   fprintf(Asm, "         ldd  4,u               ; Pick up first parameter\n");
-   /* Implement putu() here */
-   fprintf(Asm, "         ldb  #10               ; Load NEWLINE\n");
-#ifdef SIMULATOR
-   fprintf(Asm, "         lda  #5                ; SIM Print char in B register\n");
-   fprintf(Asm, "         swi                    ; SIM\n");
-#else
-   fprintf(Asm, "         tfr  b,a               ; Move char into A register\n");
-   fprintf(Asm, "         jsr  $a020             ; Send one char to the VDU\n");
-#endif   /* SIMULATOR */
-   fprintf(Asm, "         tfr  u,s               ; Deallocate stack frame\n");
-   fprintf(Asm, "         puls u                 ; Restore frame pointer\n");
-   fprintf(Asm, "         rts\n");
+   fprintf(Asm, "bn2decu         std     1,x               ; Save data in buffer\n");
+   fprintf(Asm, "; Initialise string length to zero\n");
+   fprintf(Asm, "                clr     ,x                ; String length = 0\n");
+   fprintf(Asm, "; Divide binary data by 10 by subtracting powers of ten\n");
+   fprintf(Asm, "div10u          ldy     #-1000            ; Start quotient at -1000\n");
+   fprintf(Asm, "; Find number of thousands in quotient\n");
+   fprintf(Asm, "thousdu         leay    1000,y            ; Add 1000 to quotient\n");
+   fprintf(Asm, "                subd    #10000            ; Subtract 10000 from dividend\n");
+   fprintf(Asm, "                bcc     thousdu           ; Branch if difference still positive\n");
+   fprintf(Asm, "                addd    #10000            ; Else add back last 10000\n");
+   fprintf(Asm, "; Find number of hundreds in quotient\n");
+   fprintf(Asm, "                leay    -100,y            ; Start number of hundreds at -1\n");
+   fprintf(Asm, "hunddu          leay    100,y             ; Add 100 to quotient\n");
+   fprintf(Asm, "                subd    #1000             ; Subtract 1000 from dividend\n");
+   fprintf(Asm, "                bcc     hunddu            ; Branch if difference still positive\n");
+   fprintf(Asm, "                addd    #1000             ; Else add back last 1000\n");
+   fprintf(Asm, "; Find number of tens in quotient\n");
+   fprintf(Asm, "                leay    -10,y             ; Start number of tens at -1\n");
+   fprintf(Asm, "tensdu          leay    10,y              ; Add 10 to quotient\n");
+   fprintf(Asm, "                subd    #100              ; Subtract 100 from dividend\n");
+   fprintf(Asm, "                bcc     tensdu            ; Branch if difference still positive\n");
+   fprintf(Asm, "                addd    #100              ; Else add back last 100\n");
+   fprintf(Asm, "; Find number of ones in quotient\n");
+   fprintf(Asm, "                leay    -1,y              ; Start number of ones at -1\n");
+   fprintf(Asm, "onesdu          leay    1,y               ; Add 1 to quotient\n");
+   fprintf(Asm, "                subd    #10               ; Subtract 10 from dividend\n");
+   fprintf(Asm, "                bcc     onesdu            ; Branch if difference still positive\n");
+   fprintf(Asm, "                addd    #10               ; Else add back last 10\n");
+   fprintf(Asm, "                stb     ,-s               ; Save remainder in stack\n");
+   fprintf(Asm, "                inc     ,x                ; Add 1 to length byte\n");
+   fprintf(Asm, "                tfr     y,d               ; Make quotient into new dividend\n");
+   fprintf(Asm, "                cmpd    #0                ; Check if dividend zero\n");
+   fprintf(Asm, "                bne     div10u            ; Branch if not - divide by 10 again\n");
+   fprintf(Asm, "                lda     ,x+               ; Get length byte (not including sign)\n");
+   fprintf(Asm, "                jmp     bufload\n");
+
    fprintf(Asm, "; void putl(const long int l);\n");
    fprintf(Asm, "_putl    pshs u                 ; Save old frame pointer\n");
    fprintf(Asm, "         tfr  s,u               ; Make new frame pointer\n");

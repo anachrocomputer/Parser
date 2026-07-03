@@ -31,7 +31,7 @@ At present,
 that only includes run-time output but in future will be expanded to specify
 compile-time error messages.
 When that improvement has been made,
-test will be added to generate compile-time errors and check them.
+tests will be added to generate compile-time errors and check them.
 
 ## Command-Line Arguments ##
 

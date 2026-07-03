@@ -4,6 +4,8 @@ void puti();
 
 void main(void)
 {
+// TODO: test negative integers when we get unary minus working
+
    puti(0);  // output: 0
 
    puti(00);  // output: 0
