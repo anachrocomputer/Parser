@@ -1,6 +1,6 @@
-/* function --- test an empty function called from main */
+/* function --- test an empty function called from main     2026-06-22 */
 
-void putchar();
+void puts(const char *s);
 
 void PutToSea(void)
 {
@@ -9,12 +9,10 @@ void PutToSea(void)
 
 void main(void)
 {
-   putchar('a');  // output: a
-   putchar('\n');
+   puts("harbour");   // output: harbour
    
    PutToSea();
 
-   putchar('b');  // output: b
-   putchar('\n');
+   puts("high seas"); // output: high seas
 }
 

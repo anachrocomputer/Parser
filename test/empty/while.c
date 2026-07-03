@@ -1,19 +1,17 @@
 /* while --- test an empty while-loop                       2026-07-01 */
 
-void putchar();
+void puts(const char *s);
 
 void main(void)
 {
    int rum;
 
-   putchar('a');  // output: a
-   putchar('\n');
+   puts("tea");   // output: tea
    
    rum = 4;
    while (rum--)
       ;
 
-   putchar('b');  // output: b
-   putchar('\n');
+   puts("sugar"); // output: sugar
 }
 

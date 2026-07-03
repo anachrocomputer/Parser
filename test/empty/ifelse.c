@@ -1,13 +1,12 @@
 /* ifelse --- test an empty if-else statement               2026-07-01 */
 
-void putchar();
+void puts(const char *s);
 
 void main(void)
 {
    int rum;
 
-   putchar('a');  // output: a
-   putchar('\n');
+   puts("sugar"); // output: sugar
    
    rum = 4;
    
@@ -16,7 +15,6 @@ void main(void)
    else
       ;
 
-   putchar('b');  // output: b
-   putchar('\n');
+   puts("tea");   // output: tea
 }
 

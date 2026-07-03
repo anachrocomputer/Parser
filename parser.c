@@ -642,6 +642,9 @@ void ParseStatement(struct Token *tok, const struct Symbol *const fn, const int 
    case TOBRACE:
       ParseCompoundStatement(tok, fn, returnLabel, breakLabel, continueLabel);
       break;
+   case TSEMI: // Null statement
+      ParseSemi(tok, "after statement");
+      break;
    default:
       ParseExpression(tok);
       ParseSemi(tok, "after expression");
