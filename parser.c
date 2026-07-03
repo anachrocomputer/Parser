@@ -757,6 +757,21 @@ void ParseExpression(struct Token *tok)
          Error("Expected ')' after expression");
       }
    }
+   else if (tok->token == TMINUS) {
+      PrintSyntax("-");
+      GetToken(tok);
+      ParseExpression(tok);
+      Emit("eorb", "#$ff", "<unary minus LO>");
+      Emit("eora", "#$ff", "<unary minus HI>");
+      Emit("addd", "#1", "<unary minus");
+   }
+   else if (tok->token == TNOT) {
+      PrintSyntax("~");
+      GetToken(tok);
+      ParseExpression(tok);
+      Emit("eorb", "#$ff", "<bitwise not LO>");
+      Emit("eora", "#$ff", "<bitwise not HI>");
+   }
    else if (tok->token == TINTLIT) {
       LoadIntConstant(tok->iValue, 'D', tok->str);
       GetToken(tok);
