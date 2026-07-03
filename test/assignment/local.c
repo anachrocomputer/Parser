@@ -1,8 +1,8 @@
-/* local --- test assignment to locals */
+/* local --- test assignment to locals                      2026-06-21 */
 
-void putchar();
-void putint();
-//void putuint();
+void putchar(const char c);
+void puti(const int i);
+void putu();
 //void putdouble();
 
 int main(void)
@@ -19,7 +19,7 @@ int main(void)
    tea = 't';
 // sugar = 's';
    whale = 42;
-// rum = 42;
+// rum = 42u;
 // oar = 420000L;
 // sail = 840000UL;
 // ship = 33.0;
@@ -31,10 +31,9 @@ int main(void)
 // putchar(sugar);  // output: s
 // putchar('\n');
    
-// putint(whale); // output: 42
-// putchar('\n');
+   puti(whale);   // output: 42
    
-// putuint(rum); // output: 42
+// putu(rum); // output: 42
 // putchar('\n');
    
 // putdouble(ship); // output: 33.0

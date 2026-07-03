@@ -1,8 +1,8 @@
-/* global --- test assignment to globals */
+/* global --- test assignment to globals                    2026-06-21 */
 
-void putchar();
-void putint();
-//void putuint();
+void putchar(const char c);
+void puti(const int i);
+void putu();
 //void putdouble();
 
 char Tea;
@@ -31,8 +31,7 @@ int main(void)
 // putchar(Sugar);  // output: s
 // putchar('\n');
    
-// putint(Whale); // output: 42
-// putchar('\n');
+   puti(Whale); // output: 42
    
 // putuint(Rum); // output: 42
 // putchar('\n');

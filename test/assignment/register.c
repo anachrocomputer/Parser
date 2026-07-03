@@ -1,7 +1,7 @@
 /* register --- test assignment to register variables       2026-06-21 */
 
-void putchar();
-void putint();
+void putchar(const char c);
+void puti(const int i);
 
 int main(void)
 {
@@ -12,8 +12,7 @@ int main(void)
    putchar(whale);  // output: *
    putchar('\n');
       
-// putint(whale); // output: 42
-// putchar('\n');
+   puti(whale);     // output: 42
 
    whale = 'A';
    
