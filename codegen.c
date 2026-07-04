@@ -755,6 +755,30 @@ void EmitJump(const int label, const char comment[])
 }
 
 
+/* EmitShortBranchAlways --- emit a short relative jump to a given label */
+
+void EmitShortBranchAlways(const int label, const char comment[])
+{
+   char target[8];
+   
+   snprintf(target, sizeof (target), "l%04d", label);
+   
+   Emit("bra", target, comment);
+}
+
+
+/* EmitShortBranchIfEqual --- emit a short relative branch if equal */
+
+void EmitShortBranchIfEqual(const int label, const char comment[])
+{
+   char target[8];
+   
+   snprintf(target, sizeof (target), "l%04d", label);
+   
+   Emit("beq", target, comment);
+}
+
+
 /* EmitBranchIfEqual --- emit a BEQ to a label */
 
 void EmitBranchIfEqual(const int label, const char comment[])

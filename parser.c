@@ -774,6 +774,22 @@ void ParseExpression(struct Token *tok)
       Emit("eorb", "#$ff", "<bitwise not LO>");
       Emit("eora", "#$ff", "<bitwise not HI>");
    }
+   else if (tok->token == TLOGNOT) {
+      const int tlabel = AllocLabel('T');
+      const int flabel = AllocLabel('F');
+
+      PrintSyntax("!");
+      GetToken(tok);
+      ParseExpression(tok);
+      EmitCompareIntConstant(0, "<logical NOT>");
+      EmitShortBranchIfEqual(tlabel, "");
+      Emit("clrb", "", "D = false");   // 6309: clrd
+      Emit("clra", "", "");
+      EmitShortBranchAlways(flabel, "");
+      EmitLabel(tlabel);
+      Emit("incb", "", "D = true"); // Only need to inc LSB
+      EmitLabel(flabel);
+   }
    else if (tok->token == TINTLIT) {
       LoadIntConstant(tok->iValue, 'D', tok->str);
       GetToken(tok);
