@@ -643,7 +643,7 @@ void ParseStatement(struct Token *tok, const struct Symbol *const fn, const int 
       ParseCompoundStatement(tok, fn, returnLabel, breakLabel, continueLabel);
       break;
    case TSEMI: // Null statement
-      ParseSemi(tok, "after statement");
+      GetToken(tok);
       break;
    default:
       ParseExpression(tok);
@@ -761,6 +761,7 @@ void ParseExpression(struct Token *tok)
       PrintSyntax("-");
       GetToken(tok);
       ParseExpression(tok);
+      // 6309: negd
       Emit("eorb", "#$ff", "<unary minus LO>");
       Emit("eora", "#$ff", "<unary minus HI>");
       Emit("addd", "#1", "<unary minus");
@@ -769,6 +770,7 @@ void ParseExpression(struct Token *tok)
       PrintSyntax("~");
       GetToken(tok);
       ParseExpression(tok);
+      // 6309: eord #$ffff
       Emit("eorb", "#$ff", "<bitwise not LO>");
       Emit("eora", "#$ff", "<bitwise not HI>");
    }
@@ -799,6 +801,7 @@ void ParseExpression(struct Token *tok)
       GetToken(tok);
 
       if ((tok->token == TINC) || (tok->token == TDEC)) {
+         // If 'stp' is NULL here, we get a SEGFAULT
          if (stp->readOnly) {
             Error("inc/dec 'const' object %s", stp->name);
          }
@@ -825,6 +828,7 @@ void ParseExpression(struct Token *tok)
             GetToken(tok);
          }
          else {
+            // TODO: This loop pushes arguments left-to-right, which is incorect
             do {
                ParseExpression(tok);
                
@@ -847,6 +851,7 @@ void ParseExpression(struct Token *tok)
       else if (tok->token == TASSIGN) {
          GetToken(tok);
          ParseExpression(tok);
+         // TODO: NULL 'stp' causes SEGFAULT
          if (stp->readOnly) {
             Error("Assignment to 'const' object %s", stp->name);
          }

@@ -17,6 +17,8 @@ void main(void)
 
    putu(~0);      // output: 65535
 
+   putu(~~0);     // output: 0
+   
    puti(~32767);  // output: -32768
    
    putu(~tea);    // output: 43690
@@ -34,6 +36,8 @@ void main(void)
    putu(Sugar);   // output: 0
    
    puti(~Sugar);   // output: -1
+   
+   puti(~~Sugar);  // output: 0
    
    putu(~Sugar);   // output: 65535
 }

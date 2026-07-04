@@ -15,6 +15,8 @@ void main(void)
    puti(-0);      // output: 0
 
    puti(-1);      // output: -1
+   
+   puti(-(-1));   // output: 1
 
    puti(-32767);  // output: -32767
    
@@ -23,6 +25,8 @@ void main(void)
    puti(rum);     // output: -42
    
    puti(-rum);    // output: 42
+   
+   puti(-(-rum)); // output: -42
    
    puti(-Sugar);  // output: -4200
    
