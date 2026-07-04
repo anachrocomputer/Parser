@@ -22,6 +22,7 @@ void EmitFunctionEntry(const char name[], const int nBytes, const int nRegister)
 void EmitFunctionExit(const int returnLabel, const int nRegister);
 void EmitStackCleanup(const int nBytes);
 void EmitStaticCharArray(const struct StringConstant *sc, const char name[]);
+void LoadAddressOf(const struct Symbol *const sym);
 void LoadScalar(const struct Symbol *const sym);
 void StoreScalar(const struct Symbol *const sym);
 void LoadIntConstant(const int val, const int reg, const char comment[]);

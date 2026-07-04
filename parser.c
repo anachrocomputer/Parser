@@ -757,6 +757,11 @@ void ParseExpression(struct Token *tok)
          Error("Expected ')' after expression");
       }
    }
+   else if (tok->token == TPLUS) {
+      PrintSyntax("+");
+      GetToken(tok);
+      ParseExpression(tok);
+   }
    else if (tok->token == TMINUS) {
       PrintSyntax("-");
       GetToken(tok);
@@ -790,8 +795,41 @@ void ParseExpression(struct Token *tok)
       Emit("incb", "", "D = true"); // Only need to inc LSB
       EmitLabel(flabel);
    }
+   else if (tok->token == TAND) {
+      struct Symbol *stp = NULL;
+      
+      PrintSyntax("&");
+      GetToken(tok);
+      if (tok->token == TID) {
+         if ((stp = LookUpLocalSymbol(tok->str)) == NULL) {
+            stp = LookUpExternSymbol(tok->str);
+         
+            if (stp == NULL) {
+               Error("Undeclared identifier: %s", tok->str);
+            }
+         }
+
+         if (stp->storageClass == SCREGISTER) {
+            Error("Cannot take address of register variable %s", tok->str);
+         }
+         else {
+            LoadAddressOf(stp);
+         }
+         
+         GetToken(tok);
+      }
+      else {
+         Error("Unary & applied to a non-object");
+         GetToken(tok);
+      }
+   }
    else if (tok->token == TINTLIT) {
       LoadIntConstant(tok->iValue, 'D', tok->str);
+      GetToken(tok);
+   }
+   else if (tok->token == TFLOATLIT) {
+      //LoadFloatConstant(tok->fValue, 'D', tok->str);
+      Emit("nop", "", "<float literal>");
       GetToken(tok);
    }
    else if (tok->token == TID) {
@@ -888,18 +926,15 @@ void ParseExpression(struct Token *tok)
       Strings[NextStr].sLength = tok->sLength;
       NextStr++;
       
+      
       LoadLabelAddr(strLit, tok->str);
       GetToken(tok);
    }
-   else if (tok->token == TCOMMA) {
-   }
-   else if (tok->token == TCPAREN) {
-   }
    else {
-      Emit("nop", "", "<expression>");
+      Error("Expression begins with unrecognised token %s", tok->str);
       GetToken(tok);
    }
-   
+ 
    PrintSyntax("\n");
 }
 

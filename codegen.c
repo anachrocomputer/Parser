@@ -508,6 +508,40 @@ static char *typeAsString(const int ty)
 }
 
 
+/* LoadAddressOf --- load address of a non-register object into D */
+
+void LoadAddressOf(const struct Symbol *const sym)
+{
+   char comment[MAXNAME + 64];
+   const char *sc = storageClassAsString(sym->storageClass);
+   const char *ty = typeAsString(sym->type);
+   char target[MAXNAME + 1];
+   
+   snprintf(comment, sizeof (comment), "Load address of %s %s %s", sc, ty, sym->name);
+
+   if (sym->storageClass == SCREGISTER) {
+      Error("Internal error: trying to take address of register");
+   }
+   else if (sym->storageClass == SCSTATIC) {
+      snprintf(target, MAXNAME + 1, "#l%04d", sym->label);
+      Emit("ldd", target, comment);
+   }
+   else if (sym->storageClass == SCEXTERN) {
+      snprintf(target, MAXNAME + 1, "#%c%s", NAME_PREFIX, sym->name);
+      Emit("ldd", target, comment);
+   }
+   else if (sym->storageClass == SCAUTO) {
+      GenTargetOperand(sym, 0, target);
+      
+      Emit("leax", target, comment);
+      Emit("tfr", "x,d", comment);
+   }
+   else {
+      Error("Internal error: %s", sc);
+   }
+}
+
+
 /* LoadScalar --- load a scalar variable into D or Q */
 
 void LoadScalar(const struct Symbol *const sym)
