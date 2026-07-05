@@ -407,12 +407,14 @@ int ParseDeclaration(struct Token *tok)
          break;
       default:
          Error("Unexpected symbol '%s' in declaration", tok->str);
+         GetToken(tok);
          break;
       }
       
       break;
    default:
       Error("Unexpected symbol '%s' in declaration", tok->str);
+      GetToken(tok);
       break;
    }
 
