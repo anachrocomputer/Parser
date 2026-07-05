@@ -368,6 +368,7 @@ int ParseDeclaration(struct Token *tok)
          else {
             PrintSyntax("<function_prototype>");
             ParseSemi(tok, "in function prototype");
+            ForgetLocalSymbols();  // Any parameter names in prototype were just placeholders
          }
          
          sym.readOnly = false;

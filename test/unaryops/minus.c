@@ -1,6 +1,6 @@
 /* minus --- test unary minus                               2026-07-03 */
 
-void puti();
+void puti(const int i);
 
 int Sugar = 4200;
 

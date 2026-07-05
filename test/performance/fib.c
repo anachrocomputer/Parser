@@ -1,6 +1,6 @@
 /* fib --- calculate a Fibonacci number recursively         2026-06-24 */
 
-void puti();
+void puti(const int i);
 
 int fib(const int n)
 {

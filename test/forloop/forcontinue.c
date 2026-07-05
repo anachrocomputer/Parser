@@ -1,7 +1,7 @@
 /* forcontinue --- test 'for' loop with 'continue'          2026-07-05 */
 
 void putchar(const char c);
-void puti();
+void puti(const int i);
 
 void main(void)
 {

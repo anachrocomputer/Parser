@@ -1,6 +1,6 @@
 /* integer --- verify integer literals                      2026-06-28 */
 
-void puti();
+void puti(const int i);
 
 void main(void)
 {

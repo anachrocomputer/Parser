@@ -1,6 +1,6 @@
 /* intsub --- verify integer subtraction                    2026-07-02 */
 
-void puti();
+void puti(const int i);
 
 void main(void)
 {
