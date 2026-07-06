@@ -885,7 +885,7 @@ void ParseExpression(struct Token *tok)
             GetToken(tok);
          }
          else {
-            // TODO: This loop pushes arguments left-to-right, which is incorect
+            // TODO: This loop pushes arguments left-to-right, which is incorrect
             do {
                ParseExpression(tok);
                
@@ -897,7 +897,41 @@ void ParseExpression(struct Token *tok)
                Emit("pshs", "d", "<actual parameter>");
                stackedBytes += 2;
             } while (tok->token != TCPAREN);
-         
+            
+            // Let's see if we can fix it by swapping words around on the stack just before the call
+            if (stackedBytes == 4) {
+               Emit("ldx", "0,s", "parameter swap");
+               Emit("ldd", "2,s", "parameter swap");
+               Emit("stx", "2,s", "parameter swap");
+               Emit("std", "0,s", "parameter swap");
+            }
+            else if (stackedBytes == 6) {
+               Emit("ldx", "0,s", "parameter swap");
+               Emit("ldd", "4,s", "parameter swap");
+               Emit("stx", "4,s", "parameter swap");
+               Emit("std", "0,s", "parameter swap");
+            }
+            else if (stackedBytes == 8) {
+               Emit("ldx", "0,s", "parameter swap");
+               Emit("ldd", "6,s", "parameter swap");
+               Emit("stx", "6,s", "parameter swap");
+               Emit("std", "0,s", "parameter swap");
+               Emit("ldx", "2,s", "parameter swap");
+               Emit("ldd", "4,s", "parameter swap");
+               Emit("stx", "4,s", "parameter swap");
+               Emit("std", "2,s", "parameter swap");
+            }
+            else if (stackedBytes == 10) {
+               Emit("ldx", "0,s", "parameter swap");
+               Emit("ldd", "8,s", "parameter swap");
+               Emit("stx", "8,s", "parameter swap");
+               Emit("std", "0,s", "parameter swap");
+               Emit("ldx", "2,s", "parameter swap");
+               Emit("ldd", "6,s", "parameter swap");
+               Emit("stx", "6,s", "parameter swap");
+               Emit("std", "2,s", "parameter swap");
+            }
+            
             EmitCallFunction(tmp.name, "call function with parameters");
             GetToken(tok);
             //Error("Expected ')' in function call");
