@@ -306,13 +306,12 @@ void EmitFunctionEntry(const char name[], const int nBytes, const int nRegister)
 {
    fprintf(Asm, "%c%-44s ; Function entry point\n", NAME_PREFIX, name);
 
-   if (nRegister == 0) {
-      Emit("pshs", "u", "Save old frame pointer");
-   }
-   else {
-      Emit("pshs", "u,y", "Save old frame pointer & register variable");
-   }
+   Emit("pshs", "u", "Save old frame pointer");
    Emit("tfr", "s,u", "Make new frame pointer");
+   
+   if (nRegister != 0) {
+      Emit("pshs", "y", "Save register variable");
+   }
    
    if (nBytes != 0) {
       char frame[32];
@@ -328,13 +327,11 @@ void EmitFunctionEntry(const char name[], const int nBytes, const int nRegister)
 void EmitFunctionExit(const int returnLabel, const int nRegister)
 {
    EmitLabel(returnLabel);
+   if (nRegister != 0) {
+      Emit("puls", "y", "Restore register variable");
+   }
    Emit("tfr", "u,s", "Deallocate stack frame");
-   if (nRegister == 0) {
-      Emit("puls", "u", "Restore frame pointer");
-   }
-   else {
-      Emit("puls", "u,y", "Restore frame pointer & register variable");
-   }
+   Emit("puls", "u", "Restore frame pointer");
    Emit("rts", "", "Return to caller");
 }
 
