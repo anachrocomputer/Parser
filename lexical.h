@@ -27,10 +27,10 @@ enum eToken {
 struct Token {
    char sValue[256];
    int sLength;
-   int/**/iValue;
-   double/*/*/fValue;
-   enum/*//*/eToken/***/token;
-   char/* */str[256];
+   int iValue;
+   double fValue;
+   enum eToken token;
+   char str[256];
 };
 
 void LexicalInit(void);

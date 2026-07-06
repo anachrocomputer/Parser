@@ -9,11 +9,11 @@ void putchar();
 /* break; continue; */
 // continue; break;
 
-void main(void)
+void/**/main/*/*/(void)
 {
    // return;
    /* return; */
-   putchar('a');  // output: a
-   putchar('\n');
+   putchar/*//*/('a');  // output: a
+   putchar/***/('\n'/* */);
 }
 /* Source file ends with a comment */
