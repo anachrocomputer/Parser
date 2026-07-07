@@ -1,6 +1,8 @@
 /* lexical --- lexical analyser module                      2022-08-15 */
 /* Copyright (c) 2022 John Honniball. All rights reserved              */
 
+#define MAXLEXEME    (512) // ANSI/ISO C89 requires 509 chars in a string literal
+
 enum eToken {
    TNULL, TINVAL, TSEMI, TCOLON, TCOMMA, TQUEST,
    TOPAREN, TCPAREN, TOSQBRK, TCSQBRK, TOBRACE, TCBRACE,
@@ -25,12 +27,12 @@ enum eToken {
 
 
 struct Token {
-   char sValue[256];
-   int sLength;
-   int iValue;
-   double fValue;
-   enum eToken token;
-   char lexeme[256];
+   char sValue[MAXLEXEME]; // Value of token as a string literal
+   int sLength;            // Length of string literal
+   int iValue;             // Value of token as an integer
+   double fValue;          // Value of token as a floating-point literal
+   enum eToken token;      // Token ID code
+   char lexeme[MAXLEXEME]; // Program text for this token
 };
 
 void LexicalInit(void);

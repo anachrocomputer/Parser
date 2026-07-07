@@ -7,8 +7,8 @@
 
 struct StringConstant {
    int label;
-   char str[256];
-   char sValue[256];
+   char str[MAXLEXEME];
+   char sValue[MAXLEXEME];
    int sLength;
 };
 

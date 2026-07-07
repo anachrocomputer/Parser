@@ -43,9 +43,12 @@ def runtest(testClass, name, path):
                 print("Compiler output grows without bound")
                 break
     
-    if compiler.returncode == -11:
-        print("Compiler SEGFAULT")
-        return (False, "Compiler SEGFAULT", "")
+    if compiler.returncode == -6:
+        print("Compiler SIGABRT")
+        return (False, "Compiler SIGABRT", "")
+    elif compiler.returncode == -11:
+        print("Compiler SIGSEGV")
+        return (False, "Compiler SIGSEGV", "")
     elif compiler.returncode == -13:
         print("Compiler terminated by SIGPIPE")
         return (False, "Compiler loop", "")

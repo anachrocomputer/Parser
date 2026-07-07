@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "codegen.h"
 #include "lexical.h"
+#include "codegen.h"
 
 //#define LEX_TESTER
 
@@ -958,11 +958,10 @@ void ParseExpression(struct Token *tok)
       const int strLit = AllocLabel('S');
       
       Strings[NextStr].label = strLit;
-      strncpy(Strings[NextStr].str, tok->lexeme, 256);
+      strncpy(Strings[NextStr].str, tok->lexeme, MAXLEXEME);
       memcpy(Strings[NextStr].sValue, tok->sValue, tok->sLength);
       Strings[NextStr].sLength = tok->sLength;
       NextStr++;
-      
       
       LoadLabelAddr(strLit, tok->lexeme);
       GetToken(tok);

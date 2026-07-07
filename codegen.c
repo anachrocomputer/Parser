@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "lexical.h"
 #include "codegen.h"
 
 #define NAME_PREFIX  ('_')

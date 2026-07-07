@@ -502,7 +502,12 @@ static int GetOneToken(struct Token *tok)
              ((ch >= 'A') && (ch <= 'Z')) ||
              ((ch >= '0') && (ch <= '9')) ||
              (ch == '_')) {
-            tok->lexeme[i++] = ch;
+            if (i < (MAXLEXEME - 1)) {
+               tok->lexeme[i++] = ch;
+            }
+            else {
+               Error("Identifier too long");
+            }
          }
          else {
             enum eToken token;
@@ -721,12 +726,22 @@ static int GetOneToken(struct Token *tok)
          break;
       case 12:       // seen '"', string literal
          if (ch == '\\') {
-            tok->lexeme[i++] = ch;
+            if (i < (MAXLEXEME - 3)) {
+               tok->lexeme[i++] = ch;
+            }
+            else {
+               Error("String literal too long");
+            }
             state = 13;
          }
          else if (ch == '"') {
             state = 0;
-            tok->lexeme[i++] = ch;
+            if (i < (MAXLEXEME - 1)) {
+               tok->lexeme[i++] = ch;
+            }
+            else {
+               Error("String literal too long");
+            }
             tok->lexeme[i] = EOS;
             tok->sValue[j] = EOS;
             tok->sLength = j + 1; // Include EOS in the length
@@ -734,74 +749,84 @@ static int GetOneToken(struct Token *tok)
             return (tok->token);
          }
          else {
-            tok->lexeme[i++] = ch;
-            tok->sValue[j++] = ch;
+            if (i < (MAXLEXEME - 2)) {
+               tok->lexeme[i++] = ch;    
+               tok->sValue[j++] = ch;
+            }
+            else {
+               Error("String literal too long");
+            }
          }
          break;
       case 13:       // seen '\' within string literal
-         switch (ch) {
-         case 'a':      // audible alert
-            tok->lexeme[i++] = ch;
-            tok->sValue[j++] = '\a';
+         if (i < (MAXLEXEME - 3)) {
+            switch (ch) {
+            case 'a':      // audible alert
+               tok->lexeme[i++] = ch;
+               tok->sValue[j++] = '\a';
+               state = 12;
+               break;
+            case 'b':      // backspace
+               tok->lexeme[i++] = ch;
+               tok->sValue[j++] = '\b';
+               state = 12;
+               break;
+            case 'f':      // form feed
+               tok->lexeme[i++] = ch;
+               tok->sValue[j++] = '\f';
+               state = 12;
+               break;
+            case 'n':      // newline
+               tok->lexeme[i++] = ch;
+               tok->sValue[j++] = '\n';
+               state = 12;
+               break;
+            case 'r':      // return
+               tok->lexeme[i++] = ch;
+               tok->sValue[j++] = '\r';
+               state = 12;
+               break;
+            case 't':      // tab
+               tok->lexeme[i++] = ch;
+               tok->sValue[j++] = '\t';
+               state = 12;
+               break;
+            case 'v':      // vertical tab
+               tok->lexeme[i++] = ch;
+               tok->sValue[j++] = '\v';
+               state = 12;
+               break;
+            case '\\':     // backslash
+               tok->lexeme[i++] = ch;
+               tok->sValue[j++] = '\\';
+               state = 12;
+               break;
+            case '"':      // double quote
+               tok->lexeme[i++] = ch;
+               tok->sValue[j++] = ch;
+               state = 12;
+               break;
+            case '0':      // octal escape
+            case '1': case '2': case '3': case '4':
+            case '5': case '6': case '7':
+               tok->lexeme[i++] = ch;
+               tok->sValue[j] = ch - '0';
+               state = 31;
+               break;
+            case 'x':      // hex escape
+               tok->lexeme[i++] = ch;
+               tok->sValue[j] = 0;
+               state = 32;
+               break;
+            default:
+               tok->lexeme[i++] = ch;
+               tok->sValue[j++] = ch;
+               state = 12;
+               break;
+            }
+         }
+         else {
             state = 12;
-            break;
-         case 'b':      // backspace
-            tok->lexeme[i++] = ch;
-            tok->sValue[j++] = '\b';
-            state = 12;
-            break;
-         case 'f':      // form feed
-            tok->lexeme[i++] = ch;
-            tok->sValue[j++] = '\f';
-            state = 12;
-            break;
-         case 'n':      // newline
-            tok->lexeme[i++] = ch;
-            tok->sValue[j++] = '\n';
-            state = 12;
-            break;
-         case 'r':      // return
-            tok->lexeme[i++] = ch;
-            tok->sValue[j++] = '\r';
-            state = 12;
-            break;
-         case 't':      // tab
-            tok->lexeme[i++] = ch;
-            tok->sValue[j++] = '\t';
-            state = 12;
-            break;
-         case 'v':      // vertical tab
-            tok->lexeme[i++] = ch;
-            tok->sValue[j++] = '\v';
-            state = 12;
-            break;
-         case '\\':     // backslash
-            tok->lexeme[i++] = ch;
-            tok->sValue[j++] = '\\';
-            state = 12;
-            break;
-         case '"':      // double quote
-            tok->lexeme[i++] = ch;
-            tok->sValue[j++] = ch;
-            state = 12;
-            break;
-         case '0':      // octal escape
-         case '1': case '2': case '3': case '4':
-         case '5': case '6': case '7':
-            tok->lexeme[i++] = ch;
-            tok->sValue[j] = ch - '0';
-            state = 31;
-            break;
-         case 'x':      // hex escape
-            tok->lexeme[i++] = ch;
-            tok->sValue[j] = 0;
-            state = 32;
-            break;
-         default:
-            tok->lexeme[i++] = ch;
-            tok->sValue[j++] = ch;
-            state = 12;
-            break;
          }
          break;
       case 14:       // seen '%'
@@ -1184,32 +1209,42 @@ static int GetOneToken(struct Token *tok)
          }
          break;
       case 31:       // seen '0' to '7' after '\' in string constant
-         if ((ch >= '0') && (ch <= '7')) {
-            tok->lexeme[i++] = ch;
-            tok->sValue[j] = (tok->sValue[j] << 3) + (ch - '0');
+         if (i < (MAXLEXEME - 3)) {
+            if ((ch >= '0') && (ch <= '7')) {
+               tok->lexeme[i++] = ch;
+               tok->sValue[j] = (tok->sValue[j] << 3) + (ch - '0');
+            }
+            else {
+               ungetc(ch, Src);
+               j++;
+               state = 12;
+            }
          }
          else {
-            ungetc(ch, Src);
-            j++;
             state = 12;
          }
          break;
       case 32:       // seen 'x' after '\' in string constant
-         if ((ch >= '0') && (ch <= '9')) {
-            tok->lexeme[i++] = ch;
-            tok->sValue[j] = (tok->sValue[j] << 4) + (ch - '0');
-         }
-         else if ((ch >= 'a') && (ch <= 'f')) {
-            tok->lexeme[i++] = ch;
-            tok->sValue[j] = (tok->sValue[j] << 4) + (ch - 'a') + 10;
-         }
-         else if ((ch >= 'A') && (ch <= 'F')) {
-            tok->lexeme[i++] = ch;
-            tok->sValue[j] = (tok->sValue[j] << 4) + (ch - 'A') + 10;
+         if (i < (MAXLEXEME - 3)) {
+            if ((ch >= '0') && (ch <= '9')) {
+               tok->lexeme[i++] = ch;
+               tok->sValue[j] = (tok->sValue[j] << 4) + (ch - '0');
+            }
+            else if ((ch >= 'a') && (ch <= 'f')) {
+               tok->lexeme[i++] = ch;
+               tok->sValue[j] = (tok->sValue[j] << 4) + (ch - 'a') + 10;
+            }
+            else if ((ch >= 'A') && (ch <= 'F')) {
+               tok->lexeme[i++] = ch;
+               tok->sValue[j] = (tok->sValue[j] << 4) + (ch - 'A') + 10;
+            }
+            else {
+               ungetc(ch, Src);
+               j++;
+               state = 12;
+            }
          }
          else {
-            ungetc(ch, Src);
-            j++;
             state = 12;
          }
          break;
