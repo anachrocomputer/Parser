@@ -117,7 +117,7 @@ with open("results.html", "w") as html:
             pass
         else:
 #           print("DIR : ", d)
-            html.write("<TR ALIGN=CENTER><TD COLSPAN=4>%s</TD></TR>\n" % d)
+            html.write("<TR ALIGN=CENTER><TD COLSPAN=4><B>%s</B></TD></TR>\n" % d)
                               
 #           for f in os.listdir(path=d):
 #               print("SUB-FILE: ", f)
@@ -128,14 +128,14 @@ with open("results.html", "w") as html:
                 name = os.path.splitext(os.path.split(c)[1])[0]
                 (result, msg, out) = runtest(d, name, os.path.splitext(c)[0])
                 html.write("<TR ALIGN=LEFT>\n")
-                html.write("<TD><A HREF=\"%s\">%s</A></TD>\n" % (c, c))
+                html.write("<TD><A HREF=\"%s\"><FONT FACE=\"Courier,monospace\">%s</FONT></A></TD>\n" % (c, c))
                 if result:
-                    html.write("<TD COLOR=\"#00ff00\">PASS</TD>\n")
+                    html.write("<TD><FONT FACE=\"Arial,Helvetica,sans-serif\" COLOR=\"#00ff00\">PASS</FONT></TD>\n")
                 else:
-                    html.write("<TD COLOR=\"#ff0000\">FAIL</TD>\n")
+                    html.write("<TD><FONT FACE=\"Arial,Helvetica,sans-serif\" COLOR=\"#ff0000\">FAIL</FONT></TD>\n")
                 html.write("<TD>%s</TD>\n" % msg)
                 if out != "":
-                   html.write("<TD><A HREF=\"%s\">%s</A></TD>\n" % (out, out))
+                   html.write("<TD><A HREF=\"%s\"><FONT FACE=\"Courier,monospace\">%s</FONT></A></TD>\n" % (out, out))
                 else:
                    html.write("<TD></TD>\n")
                 html.write("</TR>\n")
