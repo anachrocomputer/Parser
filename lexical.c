@@ -189,22 +189,22 @@ void PrintToken(const struct Token *tok)
    
    switch (tok->token) {
    case TNULL:
-      printf("NULL:     '%c'\n", tok->str[0]);
+      printf("NULL:     '%c'\n", tok->lexeme[0]);
       break;
    case TINVAL:
-      printf("INVALID:  '%s'\n", tok->str);
+      printf("INVALID:  '%s'\n", tok->lexeme);
       break;
    case TID:
-      printf("NAME:     '%s' %s\n", tok->str, tokenAsStr(tok));
+      printf("NAME:     '%s' %s\n", tok->lexeme, tokenAsStr(tok));
       break;
    case TINTLIT:
-      printf("NUMBER:   '%s' %s %d\n", tok->str, tokenAsStr(tok), tok->iValue);
+      printf("NUMBER:   '%s' %s %d\n", tok->lexeme, tokenAsStr(tok), tok->iValue);
       break;
    case TFLOATLIT:
-      printf("NUMBER:   '%s' %s %g\n", tok->str, tokenAsStr(tok), tok->fValue);
+      printf("NUMBER:   '%s' %s %g\n", tok->lexeme, tokenAsStr(tok), tok->fValue);
       break;
    case TSTRLIT:
-      printf("STRING:   '%s' %s", tok->str, tokenAsStr(tok));
+      printf("STRING:   '%s' %s", tok->lexeme, tokenAsStr(tok));
       for (i = 0; i < tok->sLength; i++) {
          printf(" %02x", tok->sValue[i] & 0xff);
       }
@@ -244,7 +244,7 @@ void PrintToken(const struct Token *tok)
    case TENUM:
    case TSTRUCT:
    case TUNION:
-      printf("KEYWORD:  '%s' %s\n", tok->str, tokenAsStr(tok)); 
+      printf("KEYWORD:  '%s' %s\n", tok->lexeme, tokenAsStr(tok)); 
       break;
    case TPLUS:
    case TMINUS:
@@ -282,10 +282,10 @@ void PrintToken(const struct Token *tok)
    case TPOINT:
    case TDOT:
    case TQUEST:
-      printf("OPERATOR: '%s' %s\n", tok->str, tokenAsStr(tok));
+      printf("OPERATOR: '%s' %s\n", tok->lexeme, tokenAsStr(tok));
       break;
    default:
-      printf("TOKEN:    '%s' %s\n", tok->str, tokenAsStr(tok));
+      printf("TOKEN:    '%s' %s\n", tok->lexeme, tokenAsStr(tok));
       break;
    }
 }
@@ -319,7 +319,7 @@ static int GetOneToken(struct Token *tok)
    tok->sLength = 0;
    tok->iValue = 0;
    tok->fValue = 0.0;
-   tok->str[0] = EOS;
+   tok->lexeme[0] = EOS;
    
    while (1) {
       if ((ch = getc(Src)) == EOF) {
@@ -340,58 +340,58 @@ static int GetOneToken(struct Token *tok)
          switch (ch) {
          case ':':
             tok->token = TCOLON;
-            tok->str[0] = ch;
-            tok->str[1] = EOS;
+            tok->lexeme[0] = ch;
+            tok->lexeme[1] = EOS;
             return (tok->token);
          case ';':
             tok->token = TSEMI;
-            tok->str[0] = ch;
-            tok->str[1] = EOS;
+            tok->lexeme[0] = ch;
+            tok->lexeme[1] = EOS;
             return (tok->token);
          case ',':
             tok->token = TCOMMA;
-            tok->str[0] = ch;
-            tok->str[1] = EOS;
+            tok->lexeme[0] = ch;
+            tok->lexeme[1] = EOS;
             return (tok->token);
          case '(':
             tok->token = TOPAREN;
-            tok->str[0] = ch;
-            tok->str[1] = EOS;
+            tok->lexeme[0] = ch;
+            tok->lexeme[1] = EOS;
             return (tok->token);
          case ')':
             tok->token = TCPAREN;
-            tok->str[0] = ch;
-            tok->str[1] = EOS;
+            tok->lexeme[0] = ch;
+            tok->lexeme[1] = EOS;
             return (tok->token);
          case '[':
             tok->token = TOSQBRK;
-            tok->str[0] = ch;
-            tok->str[1] = EOS;
+            tok->lexeme[0] = ch;
+            tok->lexeme[1] = EOS;
             return (tok->token);
          case ']':
             tok->token = TCSQBRK;
-            tok->str[0] = ch;
-            tok->str[1] = EOS;
+            tok->lexeme[0] = ch;
+            tok->lexeme[1] = EOS;
             return (tok->token);
          case '{':
             tok->token = TOBRACE;
-            tok->str[0] = ch;
-            tok->str[1] = EOS;
+            tok->lexeme[0] = ch;
+            tok->lexeme[1] = EOS;
             return (tok->token);
          case '}':
             tok->token = TCBRACE;
-            tok->str[0] = ch;
-            tok->str[1] = EOS;
+            tok->lexeme[0] = ch;
+            tok->lexeme[1] = EOS;
             return (tok->token);
          case '?':
             tok->token = TQUEST;
-            tok->str[0] = ch;
-            tok->str[1] = EOS;
+            tok->lexeme[0] = ch;
+            tok->lexeme[1] = EOS;
             return (tok->token);
          case '~':
             tok->token = TNOT;
-            tok->str[0] = ch;
-            tok->str[1] = EOS;
+            tok->lexeme[0] = ch;
+            tok->lexeme[1] = EOS;
             return (tok->token);
          case '#':
          case '$':
@@ -399,8 +399,8 @@ static int GetOneToken(struct Token *tok)
          case '@':
          case '\\':
             tok->token = TINVAL;
-            tok->str[0] = ch;
-            tok->str[1] = EOS;
+            tok->lexeme[0] = ch;
+            tok->lexeme[1] = EOS;
             return (tok->token);
          case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j':
          case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': case 'q': case 'r': case 's': case 't':
@@ -409,89 +409,89 @@ static int GetOneToken(struct Token *tok)
          case 'K': case 'L': case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T':
          case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z':
          case '_':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 1;
             break;
          case '|':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 2;
             break;
          case '=':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 3;
             break;
          case '.':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 33;
             break;
          case '0':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 24;
             break;
          case '1': case '2': case '3': case '4':
          case '5': case '6': case '7': case '8': case '9':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 4;
             break;
          case '*':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 5;
             break;
          case '!':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 6;
             break;
          case '+':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 7;
             break;
          case '-':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 8;
             break;
          case '&':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 9;
             break;
          case '/':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 10;
             break;
          case '"':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             j = 0;
             state = 12;
             break;
          case '%':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 14;
             break;
          case '>':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 15;
             break;
          case '<':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 17;
             break;
          case '\'':
-            tok->str[0] = ch;
+            tok->lexeme[0] = ch;
             i = 1;
             state = 21;
             break;
@@ -502,15 +502,15 @@ static int GetOneToken(struct Token *tok)
              ((ch >= 'A') && (ch <= 'Z')) ||
              ((ch >= '0') && (ch <= '9')) ||
              (ch == '_')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else {
             enum eToken token;
             
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
-            if ((token = lookupKeyword(tok->str)) == TNULL) {
+            tok->lexeme[i] = EOS;
+            if ((token = lookupKeyword(tok->lexeme)) == TNULL) {
                tok->token = TID;
             }
             else {
@@ -522,22 +522,22 @@ static int GetOneToken(struct Token *tok)
       case 2:        // seen '|'
          if (ch == '|') {
             state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->token = TLOGOR;
             return (tok->token);
          }
          else if (ch == '=') {
             state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->token = TORAB;
             return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TOR;
             return (tok->token);
          }
@@ -545,58 +545,58 @@ static int GetOneToken(struct Token *tok)
       case 3:        // seen '='
          if (ch == '=') {
             state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->token = TEQ;
             return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TASSIGN;
             return (tok->token);
          }
          break;
       case 4:        // Seen '1' to '9' (decimal number)
          if ((ch >= '0') && (ch <= '9')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else if (ch == '.') {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 27;
          }
          else if ((ch == 'e') || (ch == 'E')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 28;
          }
          else if ((ch == 'L') || (ch == 'l')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else if ((ch == 'U') || (ch == 'u')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TINTLIT;
-            tok->iValue = atoi(tok->str);
+            tok->iValue = atoi(tok->lexeme);
             return (tok->token);
          }
          break;
       case 5:        // seen '*'
          if (ch == '=') {
             state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->token = TTIMESAB;
             return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TSTAR;
             return (tok->token);
          }
@@ -604,15 +604,15 @@ static int GetOneToken(struct Token *tok)
       case 6:        // seen '!'
          if (ch == '=') {
             state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->token = TNE;
             return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TLOGNOT;
             return (tok->token);
          }
@@ -621,22 +621,22 @@ static int GetOneToken(struct Token *tok)
          if (ch == '=') {
             state = 0;
             tok->token = TPLUSAB;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             return (tok->token);
          }
          else if (ch == '+') {
             state = 0;
             tok->token = TINC;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, Src);
             tok->token = TPLUS;
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             return (tok->token);
          }
          break;
@@ -644,29 +644,29 @@ static int GetOneToken(struct Token *tok)
          if (ch == '=') {
             state = 0;
             tok->token = TMINUSAB;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             return (tok->token);
          }
          else if (ch == '-') {
             state = 0;
             tok->token = TDEC;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             return (tok->token);
          }
          else if (ch == '>') {
             state = 0;
             tok->token = TPOINT;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             return (tok->token);
          }
          else {
             state = 0;
             tok->token = TMINUS;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             return (tok->token);
          }
          break;
@@ -674,30 +674,30 @@ static int GetOneToken(struct Token *tok)
          if (ch == '=') {
             state = 0;
             tok->token = TANDAB;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             return (tok->token);
          }
          else if (ch == '&') {
             state = 0;
             tok->token = TLOGAND;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, Src);
             tok->token = TAND;
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             return (tok->token);
          }
       case 10:       // seen '/'
          if (ch == '=') {
             state = 0;
             tok->token = TDIVAB;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             return (tok->token);
          }
          else if (ch == '/') {
@@ -709,7 +709,7 @@ static int GetOneToken(struct Token *tok)
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TDIV;
             return (tok->token);
          }
@@ -721,84 +721,84 @@ static int GetOneToken(struct Token *tok)
          break;
       case 12:       // seen '"', string literal
          if (ch == '\\') {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 13;
          }
          else if (ch == '"') {
             state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->sValue[j] = EOS;
             tok->sLength = j + 1; // Include EOS in the length
             tok->token = TSTRLIT;
             return (tok->token);
          }
          else {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j++] = ch;
          }
          break;
       case 13:       // seen '\' within string literal
          switch (ch) {
          case 'a':      // audible alert
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j++] = '\a';
             state = 12;
             break;
          case 'b':      // backspace
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j++] = '\b';
             state = 12;
             break;
          case 'f':      // form feed
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j++] = '\f';
             state = 12;
             break;
          case 'n':      // newline
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j++] = '\n';
             state = 12;
             break;
          case 'r':      // return
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j++] = '\r';
             state = 12;
             break;
          case 't':      // tab
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j++] = '\t';
             state = 12;
             break;
          case 'v':      // vertical tab
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j++] = '\v';
             state = 12;
             break;
          case '\\':     // backslash
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j++] = '\\';
             state = 12;
             break;
          case '"':      // double quote
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j++] = ch;
             state = 12;
             break;
          case '0':      // octal escape
          case '1': case '2': case '3': case '4':
          case '5': case '6': case '7':
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j] = ch - '0';
             state = 31;
             break;
          case 'x':      // hex escape
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j] = 0;
             state = 32;
             break;
          default:
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j++] = ch;
             state = 12;
             break;
@@ -808,35 +808,35 @@ static int GetOneToken(struct Token *tok)
          if (ch == '=') {
             state = 0;
             tok->token = TMODAB;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, Src);
             tok->token = TMOD;
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             return (tok->token);
          }
          break;
       case 15:       // seen '>'
          if (ch == '=') {
             state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->token = TGE;
             return (tok->token);
          }
          else if (ch == '>') {
             state = 16;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TGT;
             return (tok->token);
          }
@@ -844,15 +844,15 @@ static int GetOneToken(struct Token *tok)
       case 16:       // seen '>>'
          if (ch == '=') {
             state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->token = TRSHTAB;
             return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TRSHT;
             return (tok->token);
          }
@@ -860,20 +860,20 @@ static int GetOneToken(struct Token *tok)
       case 17:       // seen '<'
          if (ch == '=') {
             state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->token = TLE;
             return (tok->token);
          }
          else if (ch == '<') {
             state = 18;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TLT;
             return (tok->token);
          }
@@ -881,15 +881,15 @@ static int GetOneToken(struct Token *tok)
       case 18:       // seen '<<'
          if (ch == '=') {
             state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->token = TLSHTAB;
             return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TLSHT;
             return (tok->token);
          }
@@ -909,87 +909,87 @@ static int GetOneToken(struct Token *tok)
          break;
       case 21:       // seen single quote: character literal
          if (ch == '\\') {
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             state = 22;
          }
          else {
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = ch;
             state = 23;
          }
          break;
       case 22:       // seen backslash: escaped character constant
          if (ch == 'a') {        // audible alert
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = '\a';
             state = 23;
          }
          else if (ch == 'b') {   // backspace
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = '\b';
             state = 23;
          }
          else if (ch == 'f') {   // form feed
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = '\f';
             state = 23;
          }
          else if (ch == 'n') {   // newline
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = '\n';
             state = 23;
          }
          else if (ch == 'r') {   // return
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = '\r';
             state = 23;
          }
          else if (ch == 't') {   // tab
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = '\t';
             state = 23;
          }
          else if (ch == 'v') {   // vertical tab
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = '\v';
             state = 23;
          }
          else if (ch == '\'') {  // single quote
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = '\'';
             state = 23;
          }
          else if (ch == '\\') {  // backslash
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = '\\';
             state = 23;
          }
          else if (ch == 'x') {   // hex number
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = 0;
             state = 29;
          }
          else if ((ch >= '0') && (ch <= '7')) {  // octal number
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = ch - '0';
             state = 30;
          }
          else {                  // unrecognised escape
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = ch;
             state = 23;
          }
@@ -997,8 +997,8 @@ static int GetOneToken(struct Token *tok)
       case 23:       // looking for closing single quote
          if (ch == '\'') {
             state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->token = TINTLIT;
             return (tok->token);
          }
@@ -1008,60 +1008,60 @@ static int GetOneToken(struct Token *tok)
          break;
       case 24:       // seen '0' (octal or hex number, or float number)
          if ((ch == 'x') || (ch == 'X')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 26;
          }
          else if ((ch >= '0') && (ch <= '7')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 25;
          }
          else if (ch == '.') {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 27;
          }
          else if ((ch == 'E') || (ch == 'e')) {		// E.g. 0e4, a valid floating-point constant
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 28;
          }
          else if ((ch == 'L') || (ch == 'l')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else if ((ch == 'U') || (ch == 'u')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TINTLIT;
-            tok->iValue = strtoul(tok->str, NULL, 8);
+            tok->iValue = strtoul(tok->lexeme, NULL, 8);
             return (tok->token);
          }
          break;
       case 25:       // seen '0' followed by '0' to '7' (octal number)
          if ((ch >= '0') && (ch <= '7')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else if (ch == '.') {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 27;
          }
          else if ((ch == 'E') || (ch == 'e')) {		// E.g. 01e4, a valid floating-point constant
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 28;
          }
          else if ((ch == 'L') || (ch == 'l')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else if ((ch == 'U') || (ch == 'u')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TINTLIT;
-            tok->iValue = strtoul(tok->str, NULL, 8);
+            tok->iValue = strtoul(tok->lexeme, NULL, 8);
             return (tok->token);
          }
          break;
@@ -1069,102 +1069,102 @@ static int GetOneToken(struct Token *tok)
          if (((ch >= '0') && (ch <= '9')) ||
              ((ch >= 'a') && (ch <= 'f')) ||
              ((ch >= 'A') && (ch <= 'F'))) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else if ((ch == 'L') || (ch == 'l')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else if ((ch == 'U') || (ch == 'u')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TINTLIT;
-            tok->iValue = strtoul(&tok->str[2], NULL, 16);
+            tok->iValue = strtoul(&tok->lexeme[2], NULL, 16);
             return (tok->token);
          }
          break;
       case 27:       // seen '.' after decimal digits
          if ((ch >= '0') && (ch <= '9')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else if ((ch == 'e') || (ch == 'E')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 28;
          }
          else if ((ch == 'f') || (ch == 'F')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 0;
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TFLOATLIT;
-            tok->fValue = strtod(tok->str, NULL);
+            tok->fValue = strtod(tok->lexeme, NULL);
             return (tok->token);
          }
          else if ((ch == 'l') || (ch == 'L')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 0;
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TFLOATLIT;
-            tok->fValue = strtod(tok->str, NULL);
+            tok->fValue = strtod(tok->lexeme, NULL);
             return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TFLOATLIT;
-            tok->fValue = strtod(tok->str, NULL);
+            tok->fValue = strtod(tok->lexeme, NULL);
             return (tok->token);
          }
          break;
       case 28:       // seen 'e' or 'E' after decimal digits
          if ((ch >= '0') && (ch <= '9')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else if ((ch == '+') || (ch == '-')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else if ((ch == 'f') || (ch == 'F')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 0;
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TFLOATLIT;
-            tok->fValue = strtod(tok->str, NULL);
+            tok->fValue = strtod(tok->lexeme, NULL);
             return (tok->token);
          }
          else if ((ch == 'l') || (ch == 'L')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             state = 0;
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TFLOATLIT;
-            tok->fValue = strtod(tok->str, NULL);
+            tok->fValue = strtod(tok->lexeme, NULL);
             return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TFLOATLIT;
-            tok->fValue = strtod(tok->str, NULL);
+            tok->fValue = strtod(tok->lexeme, NULL);
             return (tok->token);
          }
          break;
       case 29:       // seen 'x' after '\' in character constant
          if ((ch >= '0') && (ch <= '9')) {
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = (tok->iValue << 4) + (ch - '0');
          }
          else if ((ch >= 'a') && (ch <= 'f')) {
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = (tok->iValue << 4) + (ch - 'a') + 10;
          }
          else if ((ch >= 'A') && (ch <= 'F')) {
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = (tok->iValue << 4) + (ch - 'A') + 10;
          }
          else {
@@ -1174,8 +1174,8 @@ static int GetOneToken(struct Token *tok)
          break;
       case 30:       // seen '0' to '7' after '\' in character constant
          if ((ch >= '0') && (ch <= '7')) {
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->iValue = (tok->iValue << 3) + (ch - '0');
          }
          else {
@@ -1185,7 +1185,7 @@ static int GetOneToken(struct Token *tok)
          break;
       case 31:       // seen '0' to '7' after '\' in string constant
          if ((ch >= '0') && (ch <= '7')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j] = (tok->sValue[j] << 3) + (ch - '0');
          }
          else {
@@ -1196,15 +1196,15 @@ static int GetOneToken(struct Token *tok)
          break;
       case 32:       // seen 'x' after '\' in string constant
          if ((ch >= '0') && (ch <= '9')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j] = (tok->sValue[j] << 4) + (ch - '0');
          }
          else if ((ch >= 'a') && (ch <= 'f')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j] = (tok->sValue[j] << 4) + (ch - 'a') + 10;
          }
          else if ((ch >= 'A') && (ch <= 'F')) {
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
             tok->sValue[j] = (tok->sValue[j] << 4) + (ch - 'A') + 10;
          }
          else {
@@ -1216,12 +1216,12 @@ static int GetOneToken(struct Token *tok)
       case 33:       // seen '.'
          if (ch == '.') {
             state = 34;
-            tok->str[i++] = ch;
+            tok->lexeme[i++] = ch;
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TDOT;
             return (tok->token);
          }
@@ -1229,15 +1229,15 @@ static int GetOneToken(struct Token *tok)
       case 34:       // seen '..'
          if (ch == '.') {
             state = 0;
-            tok->str[i++] = ch;
-            tok->str[i] = EOS;
+            tok->lexeme[i++] = ch;
+            tok->lexeme[i] = EOS;
             tok->token = TELLIPSIS;
             return (tok->token);
          }
          else {
             state = 0;
             ungetc(ch, Src);
-            tok->str[i] = EOS;
+            tok->lexeme[i] = EOS;
             tok->token = TINVAL;
             return (tok->token);
          }
@@ -1245,8 +1245,8 @@ static int GetOneToken(struct Token *tok)
       }
    }
 
-   tok->str[0] = ch;
-   tok->str[1] = EOS;
+   tok->lexeme[0] = ch;
+   tok->lexeme[1] = EOS;
 
    return (tok->token);
 }

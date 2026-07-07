@@ -158,8 +158,8 @@ int ParseDeclaration(struct Token *tok)
       }
       
       if (tok->token == TID) {
-         PrintSyntax("<id:%s>", tok->str);
-         strncpy(sym.name, tok->str, MAXNAME);
+         PrintSyntax("<id:%s>", tok->lexeme);
+         strncpy(sym.name, tok->lexeme, MAXNAME);
          GetToken(tok);
       }
       else {
@@ -275,8 +275,8 @@ int ParseDeclaration(struct Token *tok)
             }
             
             if (tok->token == TID) {
-               PrintSyntax("<id:%s>", tok->str);
-               strncpy(param.name, tok->str, MAXNAME);
+               PrintSyntax("<id:%s>", tok->lexeme);
+               strncpy(param.name, tok->lexeme, MAXNAME);
 
                if (param.pLevel == 0) {
                   switch (type) {
@@ -407,14 +407,14 @@ int ParseDeclaration(struct Token *tok)
          }
          break;
       default:
-         Error("Unexpected symbol '%s' in declaration", tok->str);
+         Error("Unexpected symbol '%s' in declaration", tok->lexeme);
          GetToken(tok);
          break;
       }
       
       break;
    default:
-      Error("Unexpected symbol '%s' in declaration", tok->str);
+      Error("Unexpected symbol '%s' in declaration", tok->lexeme);
       GetToken(tok);
       break;
    }
@@ -496,8 +496,8 @@ void ParseFunctionBody(struct Token *tok, const struct Symbol *const fn)
       }
       
       if (tok->token == TID) {
-         PrintSyntax("<id:%s>", tok->str);
-         strncpy(sym.name, tok->str, MAXNAME);
+         PrintSyntax("<id:%s>", tok->lexeme);
+         strncpy(sym.name, tok->lexeme, MAXNAME);
 
          if (sym.storageClass == SCSTATIC) {
             sym.label = AllocLabel('S');
@@ -804,16 +804,16 @@ void ParseExpression(struct Token *tok)
       PrintSyntax("&");
       GetToken(tok);
       if (tok->token == TID) {
-         if ((stp = LookUpLocalSymbol(tok->str)) == NULL) {
-            stp = LookUpExternSymbol(tok->str);
+         if ((stp = LookUpLocalSymbol(tok->lexeme)) == NULL) {
+            stp = LookUpExternSymbol(tok->lexeme);
          
             if (stp == NULL) {
-               Error("Undeclared identifier: %s", tok->str);
+               Error("Undeclared identifier: %s", tok->lexeme);
             }
          }
 
          if (stp->storageClass == SCREGISTER) {
-            Error("Cannot take address of register variable %s", tok->str);
+            Error("Cannot take address of register variable %s", tok->lexeme);
          }
          else {
             LoadAddressOf(stp);
@@ -827,11 +827,11 @@ void ParseExpression(struct Token *tok)
       }
    }
    else if (tok->token == TINTLIT) {
-      LoadIntConstant(tok->iValue, 'D', tok->str);
+      LoadIntConstant(tok->iValue, 'D', tok->lexeme);
       GetToken(tok);
    }
    else if (tok->token == TFLOATLIT) {
-      //LoadFloatConstant(tok->fValue, 'D', tok->str);
+      //LoadFloatConstant(tok->fValue, 'D', tok->lexeme);
       Emit("nop", "", "<float literal>");
       GetToken(tok);
    }
@@ -840,18 +840,18 @@ void ParseExpression(struct Token *tok)
       struct Symbol *stp = NULL;
       
       tmp.storageClass = SCEXTERN;
-      strncpy(tmp.name, tok->str, sizeof (tmp.name));
+      strncpy(tmp.name, tok->lexeme, sizeof (tmp.name));
       tmp.type = T_INT;
       tmp.pLevel = 0;
       tmp.label = 0;
       tmp.fpOffset = 0;
       tmp.readOnly = false;
       
-      if ((stp = LookUpLocalSymbol(tok->str)) == NULL) {
-         stp = LookUpExternSymbol(tok->str);
+      if ((stp = LookUpLocalSymbol(tok->lexeme)) == NULL) {
+         stp = LookUpExternSymbol(tok->lexeme);
          
          if (stp == NULL) {
-            Error("Undeclared identifier: %s", tok->str);
+            Error("Undeclared identifier: %s", tok->lexeme);
          }
       }
 
@@ -958,17 +958,17 @@ void ParseExpression(struct Token *tok)
       const int strLit = AllocLabel('S');
       
       Strings[NextStr].label = strLit;
-      strncpy(Strings[NextStr].str, tok->str, 256);
+      strncpy(Strings[NextStr].str, tok->lexeme, 256);
       memcpy(Strings[NextStr].sValue, tok->sValue, tok->sLength);
       Strings[NextStr].sLength = tok->sLength;
       NextStr++;
       
       
-      LoadLabelAddr(strLit, tok->str);
+      LoadLabelAddr(strLit, tok->lexeme);
       GetToken(tok);
    }
    else {
-      Error("Expression begins with unrecognised token %s", tok->str);
+      Error("Expression begins with unrecognised token %s", tok->lexeme);
       GetToken(tok);
    }
  

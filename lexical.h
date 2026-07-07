@@ -30,7 +30,7 @@ struct Token {
    int iValue;
    double fValue;
    enum eToken token;
-   char str[256];
+   char lexeme[256];
 };
 
 void LexicalInit(void);
