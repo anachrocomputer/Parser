@@ -356,22 +356,21 @@ void EmitStaticCharArray(const struct StringConstant *sc, const char name[])
 {
    char target[8];
    char bytes[64];
+   char hex[8];
    int i, n;
 
    snprintf(target, sizeof (target), "l%04d", sc->label);
    
    bytes[0] = '\0';
    
-   if (sc->sLength > 7) {
-      n = 7;
+   if (sc->sLength > 8) {
+      n = 8;
    }
    else {
       n = sc->sLength;
    }
 
    for (i = 0; i < n; i++) {
-      char hex[8];
-      
       sprintf(hex, "$%02x", sc->sValue[i] & 0xff);
       
       strcat(bytes, hex);
@@ -384,7 +383,7 @@ void EmitStaticCharArray(const struct StringConstant *sc, const char name[])
    fprintf(Asm, "%-7s fcb  %-32s ; const char %s[%d] = %s\n", target, bytes, name, sc->sLength - 1, sc->str);
    
    while (i < sc->sLength) {
-      n += 7;
+      n += 8;
       
       if (n > sc->sLength) {
          n = sc->sLength;
@@ -393,8 +392,6 @@ void EmitStaticCharArray(const struct StringConstant *sc, const char name[])
       bytes[0] = '\0';
 
       for ( ; i < n; i++) {
-         char hex[8];
-
          sprintf(hex, "$%02x", sc->sValue[i] & 0xff);
          
          strcat(bytes, hex);
