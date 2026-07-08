@@ -1,6 +1,19 @@
 /* comments --- verify that comments are ignored            2026-06-27 */
 
-void putchar();
+/***********************/
+/* * * * * * * * * * * */
+/***********************/
+
+void putchar(const/* */int/***/c);
+
+/* ******************* */
+/* *                 * */
+/* ******************* */
+
+/** ***************** **/
+/** **             ** **/
+/** ***************** **/
+
 /* $@` are not used in C */
 // $@` are not used in C
 
@@ -9,11 +22,16 @@ void putchar();
 /* break; continue; */
 // continue; break;
 
+/**
+ * @brief main function
+ */
 void/**/main/*/*/(void)
 {
+   /*#*#*#*#*#*#*/
    // return;
    /* return; */
    putchar/*//*/('a');  // output: a
-   putchar/***/('\n'/* */);
+   putchar('\n');
+   /*///////////*/
 }
 /* Source file ends with a comment */

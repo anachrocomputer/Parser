@@ -334,7 +334,7 @@ static int GetOneToken(struct Token *tok)
       else {
          Pos++;
       }
-
+      
       switch (state) {
       case 0:
          switch (ch) {
@@ -920,7 +920,7 @@ static int GetOneToken(struct Token *tok)
          }
          break;
       case 19:
-         if (ch == '*') {
+         if (ch == '*') {  // Maybe the end of the comment, maybe just a row of stars
             state = 20;
          }
          break;
@@ -928,9 +928,10 @@ static int GetOneToken(struct Token *tok)
          if (ch == '/') {  // End of traditional C comment
             state = 0;
          }
-         else {
+         else if (ch != '*') { // Go back to looking for the closing star-slash
             state = 19;
          }
+         // else keep scanning stars and looking for a closing slash
          break;
       case 21:       // seen single quote: character literal
          if (ch == '\\') {
