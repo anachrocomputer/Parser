@@ -245,7 +245,7 @@ int ParseDeclaration(struct Token *tok)
                   Error("Symbol '%s' is already declared", sym.name);
                }
                
-               ExitExternArray(&sym, iValue);
+               EmitExternArray(&sym, iValue);
                GetToken(tok);
             }
             else {

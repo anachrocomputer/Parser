@@ -772,9 +772,9 @@ void EmitExternScalar(const struct Symbol *const sym, const int init, const doub
 }
 
 
-/* ExitExternArray --- emit code for an uninitialised array */
+/* EmitExternArray --- emit code for an uninitialised array */
 
-void ExitExternArray(const struct Symbol *const sym, const int n)
+void EmitExternArray(const struct Symbol *const sym, const int n)
 {
    char name[MAXNAME + 1];
    char *storage = "";
