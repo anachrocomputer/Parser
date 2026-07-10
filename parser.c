@@ -220,6 +220,32 @@ int ParseDeclaration(struct Token *tok)
          if (ParseConstIntExpr(tok, &iValue, &iType)) {
             if (tok->token == TCSQBRK) {
                PrintSyntax("]");
+               
+               if (sym.pLevel == 0) {
+                  switch (type) {
+                  case TCHAR:
+                     sym.type = T_CHAR;
+                     break;
+                  case TINT:
+                     sym.type = T_INT;
+                     break;
+                  case TFLOAT:
+                     sym.type = T_FLOAT;
+                     break;
+                  case TDOUBLE:
+                     sym.type = T_DOUBLE;
+                     break;
+                  }
+               }
+               else {
+                  sym.type = T_INT;
+               }
+         
+               if (AddExternSymbol(&sym) == false) {
+                  Error("Symbol '%s' is already declared", sym.name);
+               }
+               
+               ExitExternArray(&sym, iValue);
                GetToken(tok);
             }
             else {
@@ -964,6 +990,10 @@ void ParseExpression(struct Token *tok)
       NextStr++;
       
       LoadLabelAddr(strLit, tok->lexeme);
+      GetToken(tok);
+   }
+   else if (tok->token == TSIZEOF) {
+      // TODO: implement sizeof here
       GetToken(tok);
    }
    else {

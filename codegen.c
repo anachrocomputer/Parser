@@ -772,6 +772,54 @@ void EmitExternScalar(const struct Symbol *const sym, const int init, const doub
 }
 
 
+/* ExitExternArray --- emit code for an uninitialised array */
+
+void ExitExternArray(const struct Symbol *const sym, const int n)
+{
+   char name[MAXNAME + 1];
+   char *storage = "";
+   
+   if (sym->storageClass == SCEXTERN) {
+      snprintf(name, sizeof (name), "%c%s", NAME_PREFIX, sym->name);
+   }
+   else if (sym->storageClass == SCSTATIC) {
+      snprintf(name, sizeof (name), "l%04d", sym->label);
+      storage = "static ";
+   }
+   else {
+      fprintf(stderr, "Only 'extern' or 'static' is valid\n");
+   }
+   
+   if (sym->pLevel == 0) {
+      switch (sym->type) {
+      case T_CHAR:
+      case T_UCHAR:
+         fprintf(Asm, "%-30s  rmb  %d      ; %schar %s[%d]\n", name, n, storage, sym->name, n);
+         break;
+      case T_SHORT:
+      case T_USHORT:
+      case T_INT:
+      case T_UINT:
+         fprintf(Asm, "%-30s  rmb  %d      ; %sint %s[%d]\n", name, n * 2, storage, sym->name, n);
+         break;
+      case T_LONG:
+      case T_ULONG:
+         fprintf(Asm, "%-30s  rmb  %d      ; %slong int %s[%d]\n", name, n * 4, storage, sym->name, n);
+         break;
+      case T_FLOAT:
+         fprintf(Asm, "%-30s  rmb  %d      ; %sfloat %s[%d]\n", name, n * 4, storage, sym->name, n);
+         break;
+      case T_DOUBLE:
+         fprintf(Asm, "%-30s  rmb  %d      ; %sdouble %s[%d]\n", name, n * 8, storage, sym->name, n);
+         break;
+      }
+   }
+   else {
+      fprintf(Asm, "%-30s  rmb  %d      ; %spointer %s[%d]\n", name, n * 2, storage, sym->name, n);
+   }
+}
+
+
 /* EmitJump --- emit a jump (possibly relative) to a given label */
 
 void EmitJump(const int label, const char comment[])

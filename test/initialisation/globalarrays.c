@@ -13,12 +13,15 @@ void putchar(const char c);
 
 void main(void)
 {
-   //NameOfTheWhale = 'W';
-   //Mast = 42;
+   // Invalid assignments but we have no array indexing yet
+   NameOfTheWhale = 'W';
+   Mast = 42;
    
-   //putchar(NameOfTheWhale);    // output: W
-   putchar('\n');
+   putchar(NameOfTheWhale);    // output: W
+   putchar('\n');   
+// putu(sizeof (NameOfTheWhale));  // output: 128
    
-   //puti(Mast);    // output: 42
+   puti(Mast);    // output: 42
+// putu(sizeof (Mast));  // output: 8
 }
 

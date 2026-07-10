@@ -28,6 +28,7 @@ void StoreScalar(const struct Symbol *const sym);
 void LoadIntConstant(const int val, const int reg, const char comment[]);
 void LoadLabelAddr(const int label, const char comment[]);
 void EmitExternScalar(const struct Symbol *const sym, const int init, const double fInit);
+void ExitExternArray(const struct Symbol *const sym, const int n);
 void EmitJump(const int label, const char comment[]);
 void EmitShortBranchAlways(const int label, const char comment[]);
 void EmitShortBranchIfEqual(const int label, const char comment[]);
