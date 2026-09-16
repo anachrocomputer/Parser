@@ -1,6 +1,6 @@
 /* while --- test nested 'while' loops                      2026-06-25 */
 
-void putchar();
+void putchar(const int ch);
 
 void main(void)
 {

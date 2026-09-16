@@ -1,6 +1,6 @@
 /* switch --- test nested 'switch' statements               2026-06-23 */
 
-void putchar();
+void putchar(const int ch);
 
 void Ship(int sugar, int tea)
 {

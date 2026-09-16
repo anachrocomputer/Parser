@@ -1,6 +1,6 @@
 /* functionreg --- test nested void function calls with register 2026-07-01 */
 
-void putchar();
+void putchar(const int ch);
 
 void NameOfTheShip(void)
 {

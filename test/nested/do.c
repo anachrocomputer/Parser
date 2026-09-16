@@ -1,6 +1,6 @@
 /* do --- test nested 'do' loops                            2026-07-01 */
 
-void putchar();
+void putchar(const int ch);
 
 void main(void)
 {

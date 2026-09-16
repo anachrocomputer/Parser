@@ -1,6 +1,6 @@
 /* intfunc --- test nested int function calls               2026-06-30 */
 
-void putchar();
+void putchar(const int ch);
 
 int NameOfTheShip(void)
 {

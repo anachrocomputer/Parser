@@ -1,6 +1,6 @@
 /* forreg --- test nested 'for' loops with register         2026-07-01 */
 
-void putchar();
+void putchar(const int ch);
 
 void main(void)
 {

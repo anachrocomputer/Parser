@@ -1,6 +1,6 @@
 /* for --- test nested 'for' loops                          2026-06-29 */
 
-void putchar();
+void putchar(const int ch);
 
 void main(void)
 {
