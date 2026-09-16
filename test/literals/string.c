@@ -1,6 +1,6 @@
 /* string --- test string literals                          2026-06-28 */
 
-void puts();
+void puts(const char *s);
 
 void main(void)
 {

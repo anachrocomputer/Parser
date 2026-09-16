@@ -1,7 +1,7 @@
 /* module --- test assignment to module statics */
 
-void putchar();
-void putint();
+void putchar(const char ch);
+void putint(const int i);
 //void putuint();
 //void putdouble();
 

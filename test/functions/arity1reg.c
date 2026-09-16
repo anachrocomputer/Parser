@@ -1,6 +1,6 @@
 /* arity1reg --- test a void function with one parameter    2026-07-02 */
 
-void putchar();
+void putchar(const char ch);
 
 void Wellerman(int sugar);
 

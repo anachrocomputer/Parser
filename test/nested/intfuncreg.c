@@ -1,6 +1,6 @@
 /* intfuncreg --- test nested int function calls with register 2026-07-01 */
 
-void putchar();
+void putchar(const char ch);
 
 int NameOfTheShip(void)
 {

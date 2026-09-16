@@ -1,6 +1,6 @@
 /* switch --- test a really big 'switch' statement          2026-06-25 */
 
-void putchar();
+void putchar(const char ch);
 
 void main(void)
 {

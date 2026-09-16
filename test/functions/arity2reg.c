@@ -1,6 +1,6 @@
 /* arity2reg --- test a void function with two parameters   2026-07-02 */
 
-void putchar();
+void putchar(const char ch);
 
 void Wellerman(int sugar, int tea);
 

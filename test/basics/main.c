@@ -1,6 +1,6 @@
 /* main --- simple main function                            2026-06-27 */
 
-void putchar();
+void putchar(const char ch);
 
 void main(void)
 {

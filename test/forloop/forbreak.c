@@ -1,6 +1,6 @@
 /* forbreak --- test 'for' loop with 'break'                2026-07-05 */
 
-void putchar();
+void putchar(const char ch);
 
 void main(void)
 {
