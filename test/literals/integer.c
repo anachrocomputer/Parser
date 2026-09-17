@@ -4,17 +4,21 @@ void puti(const int i);
 
 void main(void)
 {
-// TODO: test negative integers when we get unary minus working
+   puti(0);       // output: 0
 
-   puti(0);  // output: 0
+   puti(00);      // output: 0
 
-   puti(00);  // output: 0
+   puti(100);     // output: 100
+   
+   puti(1000);    // output: 1000
+   
+   puti(10000);   // output: 10000
+   
+   puti(32767);   // output: 32767
 
-   puti(32767);  // output: 32767
+   puti(0x0);     // output: 0
 
-   puti(0x0);  // output: 0
-
-   puti(0x00);  // output: 0
+   puti(0x00);    // output: 0
 
    puti(0x7fff);  // output: 32767
 
@@ -31,4 +35,20 @@ void main(void)
    puti(0xff);    // output: 255
 
    puti(0377);    // output: 255
+   
+   puti(-1);      // output: -1
+   
+   puti(-100);    // output: -100
+   
+   puti(-1000);   // output: -1000
+   
+   puti(-10000);  // output: -10000
+   
+   puti(-255);    // output: -255
+   
+   puti(-0377);   // output: -255
+   
+   puti(-32767);  // output: -32767
+   
+   puti(-0x7fff); // output: -32767
 }
